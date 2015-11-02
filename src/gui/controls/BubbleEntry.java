@@ -40,7 +40,10 @@ public class BubbleEntry extends StackPane implements EntryCell {
 	
 	/**
 	 * Creates an EntryBubble and assigns an entry to it.
-	 * @param e
+	 * @param entry the entry assigned to this bubble
+	 * @param pv the ProjectView associated with this EntryBubble
+     * @param x the x coordinate
+     * @param y the y coordinate
 	 */
 	public BubbleEntry(Entry entry, ProjectView pv, double x, double y) {
 		width = 200;
@@ -110,19 +113,9 @@ public class BubbleEntry extends StackPane implements EntryCell {
 		BubbleEntry eb = this;
 		
 		//Click the bubble
-		this.setOnMouseClicked(new EventHandler<MouseEvent>(){
-			@Override
-			public void handle(MouseEvent event) {
-				projectView.entryClicked(event, eb);
-			}
-		});
+        this.setOnMouseClicked((MouseEvent event) -> projectView.entryClicked(event, eb));
 		
 		//Drag into the bubble
-		this.setOnMouseDragEntered(new EventHandler<MouseEvent>(){
-			@Override
-			public void handle(MouseEvent event) {
-				projectView.entryClicked(null, eb);
-			}
-		});
+        this.setOnMouseDragEntered((MouseEvent event) -> projectView.entryClicked(null, eb));
 	}
 }

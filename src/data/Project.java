@@ -28,8 +28,8 @@ public class Project {
 		this.end = end;
 		duration = DateTime.minutesBetween(start, end);
 		
-		entries = new ArrayList<Entry>();
-		participants = new ArrayList<User>();
+		entries = new ArrayList<>();
+		participants = new ArrayList<>();
 	}
 
 	/**
@@ -94,7 +94,7 @@ public class Project {
 	 */
 	public void addEntries(Entry... entries){ 
 		for(Entry e : entries)
-		this.entries.add(e); 
+            this.entries.add(e);
 	}
 	
 	/**

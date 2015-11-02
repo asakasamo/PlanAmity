@@ -28,40 +28,26 @@ public final class GUI {
 		final Delta dragDelta = new Delta();
 		
 		//stores the beginning position of the mouse
-		node.setOnMousePressed(new EventHandler<MouseEvent>() {
-			@Override 
-			public void handle(MouseEvent mouseEvent) {
-				// record a delta distance for the drag and drop operation.
-				dragDelta.x = node.getLayoutX() - mouseEvent.getSceneX();
-				dragDelta.y = node.getLayoutY() - mouseEvent.getSceneY();
-			}
-		});
+		node.setOnMousePressed((MouseEvent mouseEvent) -> {
+            dragDelta.x = node.getLayoutX() - mouseEvent.getSceneX();
+            dragDelta.y = node.getLayoutY() - mouseEvent.getSceneY();
+        });
 		
 		//actually move the node
-		node.setOnMouseDragged(new EventHandler<MouseEvent>() {
-			@Override 
-			public void handle(MouseEvent mouseEvent) {
-				node.setLayoutX(mouseEvent.getSceneX() + dragDelta.x);
-				if(lockX.length < 1) 
-					node.setLayoutY(mouseEvent.getSceneY() + dragDelta.y);
-			}
-		});
-		
-		//what happens when you drag a node over this one
-		node.setOnDragOver(new EventHandler<DragEvent>(){
-			@Override
-			public void handle(DragEvent event) {
-				//...
-			}
-		});
+        node.setOnMouseDragged((MouseEvent mouseEvent) ->{
+            node.setLayoutX(mouseEvent.getSceneX() + dragDelta.x);
+            if(lockX.length < 1)
+                node.setLayoutY(mouseEvent.getSceneY() + dragDelta.y);
+        });
+
+        //what happens when you drag a node over this one
+        node.setOnDragOver((DragEvent event) -> {
+
+        });
 
 		//activates the drag event to enable other nodes to detect drag over
-		node.setOnDragDetected(new EventHandler<MouseEvent>() {
-			@Override 
-			public void handle(MouseEvent mouseEvent) {
-				node.startFullDrag();
-			}
-		});
+		node.setOnDragDetected((MouseEvent mouseEvent) -> node.startFullDrag());
+
 	}
 
 	/**

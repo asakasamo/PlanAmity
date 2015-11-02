@@ -30,7 +30,7 @@ public class User {
 	 * Adds an entry to the User's assignments.
 	 * @param e the entry to add
 	 */
-	public void addAssignment(Entry e) { assignments.add(e); };
+	public void addAssignment(Entry e) { assignments.add(e); }
 	
 	/**
 	 * Removes an entry from the User's assignments.

@@ -26,8 +26,8 @@ public class DateTime extends GregorianCalendar {
 	
 	/**
 	 * Returns a DateTime that is a specified number of minutes after a specified DateTime.
-	 * @param hrs the number of minutes
-	 * @param d the DateTime
+	 * @param mins the number of minutes
+	 * @param from the reference DateTime
 	 * @return a DateTime mins minutes from d
 	 */
 	public static DateTime getLaterDateTime(int mins, DateTime from){

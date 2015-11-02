@@ -23,7 +23,6 @@ import javafx.util.Duration;
 public class Main extends Application {
 	private StackPane root;
 	
-	
 	@Override
 	public void start(Stage primaryStage) {
 		root = new StackPane();
@@ -43,18 +42,13 @@ public class Main extends Application {
 		primaryStage.show();
 		
 		final Timeline timeline = new Timeline();
-		final KeyValue kv = new KeyValue(pv.translateXProperty(), -1000, Interpolator.EASE_BOTH);
+		final KeyValue kv = new KeyValue(pv.translateXProperty(), -2000, Interpolator.EASE_BOTH);
 		final KeyFrame kf = new KeyFrame(Duration.millis(2000), kv);
 		timeline.getKeyFrames().add(kf);
-		timeline.setOnFinished(new EventHandler<ActionEvent>(){
-			@Override
-			public void handle(ActionEvent event){
-				//scene.getChildren().remove(root);
-				root.getChildren().set(0, new ProjectView(null));
-			}
-		});
+
+		timeline.setOnFinished((ActionEvent event) -> root.getChildren().set(0, new ProjectView(null)));
+
 		timeline.play();
-		
 	}
 
 	public static void main(String[] args) {

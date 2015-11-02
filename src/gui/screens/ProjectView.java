@@ -26,7 +26,7 @@ import javafx.util.Duration;
  */
 public class ProjectView extends Pane {
 
-	private BubbleEntry focus; 								//TODO: Abstract the entries into Bubbles & SubEntries
+	private EntryCell focus; 								//TODO: Abstract the entries into Bubbles & SubEntries
 	private List<BubbleEntry> mainEntries; 					//main entries
 	private final int CELL_WIDTH = BubbleEntry.WIDTH + 10;	//width of the cells of the main entries
 	private Project project;
@@ -37,7 +37,7 @@ public class ProjectView extends Pane {
 
 		//solid green background
 		this.setStyle("-fx-background-color:green");
-		mainEntries = new ArrayList<BubbleEntry>();
+		mainEntries = new ArrayList<>();
 		focus = null;
 
 		//set view dimensions

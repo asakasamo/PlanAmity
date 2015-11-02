@@ -35,7 +35,7 @@ public class Entry {
 		description = "";
 
 		parent = null;
-		children = new ArrayList<Entry>();
+		children = new ArrayList<>();
 
 		start = new DateTime();
 		end = new DateTime();
@@ -44,7 +44,7 @@ public class Entry {
 
 		assignedTo = null;
 		lastModifiedBy = null;
-		attachments = new ArrayList<Object>();
+		attachments = new ArrayList<>();
 	}
 
 	/**
@@ -93,8 +93,8 @@ public class Entry {
 	}
 
 	/**
-	 * Get the user this entry is assigned to.
-	 * @return
+	 * Returns the user this entry is assigned to.
+	 * @return the user this entry is assigned to
 	 */
 	public User getAssignedTo() { return assignedTo; }
 
@@ -221,7 +221,7 @@ public class Entry {
 	}
 
 	/**
-	 * Returns true if the Entry has any attachments.
+	 * Returns true if the Entry has any attachments. TODO: MAKE THIS NOT RANDOM
 	 * @return true if the Entry has any attachments, false otherwise
 	 */
 	public boolean hasAttachments() {

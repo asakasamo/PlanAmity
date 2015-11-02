@@ -45,22 +45,22 @@ public class PlusButton extends VBox {
 		botHalf.setClip(new Rectangle(width, height/2));
 
 		//Color indicators for top and bottom halves
-//				topHalf.setStyle("-fx-background-color:pink");
-		//		botHalf.setStyle("-fx-background-color:purple");
-		//		this.setStyle("-fx-background-color:yellow");
+//		topHalf.setStyle("-fx-background-color:pink");
+//		botHalf.setStyle("-fx-background-color:purple");
+//		this.setStyle("-fx-background-color:yellow");
 
 		//initialize top half circle
 		topHalfCircle = new Circle(width/2, Color.BLUE);
 		topHalfCircle.setTranslateX(width/2);
 		topHalfCircle.setTranslateY(height/2);
-		topHalfCircle = (Circle)hoverMe(topHalfCircle);
+		topHalfCircle = hoverMe(topHalfCircle);
 
 		topHalf.getChildren().add(topHalfCircle);
 
 		//initialize bot half circle
 		botHalfCircle = new Circle(width/2, Color.RED);
 		botHalfCircle.setTranslateX(width/2);
-		botHalfCircle = (Circle)hoverMe(botHalfCircle);
+		botHalfCircle = hoverMe(botHalfCircle);
 
 		botHalf.getChildren().add(botHalfCircle);
 
@@ -77,26 +77,11 @@ public class PlusButton extends VBox {
 	private Circle hoverMe(Circle n){
 		Paint orig = n.getFill();
 
-		n.setOnMouseEntered(new EventHandler<MouseEvent>(){
-			@Override
-			public void handle(MouseEvent event) {
-				n.setFill(Color.YELLOW);
-			}
-		});
+        n.setOnMouseEntered((MouseEvent event) -> n.setFill(Color.YELLOW));
 
-		n.setOnMouseExited((new EventHandler<MouseEvent>(){
-			@Override
-			public void handle(MouseEvent event) {
-				n.setFill(orig);
-			}
-		}));
+        n.setOnMouseExited((MouseEvent event) -> n.setFill(orig));
 
-		n.setOnMouseClicked(new EventHandler<MouseEvent>(){
-			@Override
-			public void handle(MouseEvent event){
-				projectView.triggerAddNewEntry(true);
-			}
-		});
+        n.setOnMouseClicked((MouseEvent event) -> projectView.triggerAddNewEntry(true));
 
 		return n;
 	}
