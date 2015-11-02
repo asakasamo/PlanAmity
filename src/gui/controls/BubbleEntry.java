@@ -23,7 +23,7 @@ import javafx.scene.text.Text;
  * @author Al-John
  *
  */
-public class EntryBubble extends StackPane implements EntryCell {
+public class BubbleEntry extends StackPane implements EntryCell {
 	public static final int WIDTH = 200;
 	public static final int HEIGHT = 100;
 
@@ -42,7 +42,7 @@ public class EntryBubble extends StackPane implements EntryCell {
 	 * Creates an EntryBubble and assigns an entry to it.
 	 * @param e
 	 */
-	public EntryBubble(Entry entry, ProjectView pv, double x, double y) {
+	public BubbleEntry(Entry entry, ProjectView pv, double x, double y) {
 		width = 200;
 		height = 100;
 		
@@ -107,7 +107,7 @@ public class EntryBubble extends StackPane implements EntryCell {
 	 * Initializes the bubble's responses to user input.
 	 */
 	public void initInputResponses() {
-		EntryBubble eb = this;
+		BubbleEntry eb = this;
 		
 		//Click the bubble
 		this.setOnMouseClicked(new EventHandler<MouseEvent>(){

@@ -6,7 +6,7 @@ import java.util.List;
 import data.Entry;
 import data.Project;
 import gui.GUI;
-import gui.controls.EntryBubble;
+import gui.controls.BubbleEntry;
 import gui.controls.EntryCell;
 import gui.controls.PlusButton;
 import javafx.animation.Interpolator;
@@ -26,9 +26,9 @@ import javafx.util.Duration;
  */
 public class ProjectView extends Pane {
 
-	private EntryBubble focus; 								//TODO: Abstract the entries into Bubbles & SubEntries
-	private List<EntryBubble> mainEntries; 					//main entries
-	private final int CELL_WIDTH = EntryBubble.WIDTH + 10;	//width of the cells of the main entries
+	private BubbleEntry focus; 								//TODO: Abstract the entries into Bubbles & SubEntries
+	private List<BubbleEntry> mainEntries; 					//main entries
+	private final int CELL_WIDTH = BubbleEntry.WIDTH + 10;	//width of the cells of the main entries
 	private Project project;
 
 	public ProjectView(Project project) {
@@ -37,7 +37,7 @@ public class ProjectView extends Pane {
 
 		//solid green background
 		this.setStyle("-fx-background-color:green");
-		mainEntries = new ArrayList<EntryBubble>();
+		mainEntries = new ArrayList<BubbleEntry>();
 		focus = null;
 
 		//set view dimensions
@@ -66,7 +66,7 @@ public class ProjectView extends Pane {
 		//location on the main timeline
 		double XONGRID = (1 + mainEntries.size()) * CELL_WIDTH; //TODO: actually figure it out
 		double YONGRID = 200;
-		EntryBubble bubble = new EntryBubble(e, this, XONGRID, YONGRID);
+		BubbleEntry bubble = new BubbleEntry(e, this, XONGRID, YONGRID);
 
 		//add to everything that needs to keep track of it
 		this.mainEntries.add(bubble);
@@ -102,7 +102,7 @@ public class ProjectView extends Pane {
 		//animation: shift all of the entry bubbles after the deleted one to the left
 		for(int i = idx; i < mainEntries.size(); i++){
 			final Timeline timeline = new Timeline();
-			EntryBubble eb = mainEntries.get(i);
+			BubbleEntry eb = mainEntries.get(i);
 			final KeyValue kv = new KeyValue(eb.translateXProperty(), eb.getTranslateX() - CELL_WIDTH, Interpolator.EASE_BOTH);
 			final KeyFrame kf = new KeyFrame(Duration.millis(200), kv);
 			timeline.getKeyFrames().add(kf);
