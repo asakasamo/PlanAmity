@@ -1,0 +1,19 @@
+/* JavaFX CSS - Leave this comment until you have at least create one rule which uses -fx-Property */
+.bubbleText{
+	-fx-font-size: 30px;
+	-fx-fill: white;
+	-fx-font-weight:bold;
+}
+
+.bubbleText:hover {
+	-fx-fill: green;
+}
+
+.bubble-bg{
+   -fx-arc-width:20;
+   -fx-arc-height:20;
+}
+
+.bubble:hover {
+	-fx-background-color:yellow;
+}
