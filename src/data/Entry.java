@@ -12,7 +12,7 @@ import javafx.scene.paint.Color;
 public class Entry {
 	private String name;
 	private String description;
-	
+
 	private DateTime start;
 	private DateTime end;
 	private int duration;
@@ -24,14 +24,14 @@ public class Entry {
 	private User assignedTo;
 	private User lastModifiedBy;
 	private ArrayList<Object> attachments;
-	
+
 	public Entry(String name){
 		this.name = name;
 		description = "";
-		
+
 		parent = null;
 		children = new ArrayList<Entry>();
-		
+
 		start = new DateTime();
 		end = new DateTime();
 		duration = 0;
@@ -41,28 +41,28 @@ public class Entry {
 		lastModifiedBy = null;
 		attachments = new ArrayList<Object>();
 	}
-	
+
 	public Entry(String name, Entry parent){
 		this(name);
 		this.parent = parent;
 		parent.children.add(this);
 	}
-	
+
 	/**
 	 * @return This entry's parent entry, or null if it is a top level entry.
 	 */
 	public Entry getParent(){ return parent; }
-	
+
 	/**
 	 * @return This entry's child entries.
 	 */
 	public ArrayList<Entry> getChildren() { return children; }
-	
+
 	/**
 	 * @return This entry's name.
 	 */
 	public String getName() { return name; }
-	
+
 	/**
 	 * Assigns the entry to a specified user.
 	 * @param u the user to assign the entry to
@@ -71,7 +71,7 @@ public class Entry {
 		assignedTo = u; 
 		u.addAssignment(this);
 	}
-	
+
 	/**
 	 * @return the color associated with this User.
 	 */
@@ -81,19 +81,19 @@ public class Entry {
 		else
 			return assignedTo.getColor();
 	}
-	
+
 	/**
 	 * Get the user this entry is assigned to.
 	 * @return
 	 */
 	public User getAssignedTo() { return assignedTo; }
-	
+
 	/**
 	 * 
 	 * @return the duration of this entry, in hours.
 	 */
 	public long getDuration() { return duration; }
-	
+
 	/**
 	 * Sets the duration of this entry, then modifies its end date accordingly.
 	 * @param dur the duration of this entry, in hours
@@ -102,7 +102,7 @@ public class Entry {
 		this.duration = dur;
 		end = DateTime.getLaterDateTime(dur, start);
 	}
-	
+
 	/**
 	 * Sets the start DateTime of this entry. 
 	 * 	If keepDur is true, then modifies the end DateTime accordingly.
@@ -115,7 +115,7 @@ public class Entry {
 		if(keepDur)	end = DateTime.getLaterDateTime(duration, start);
 		else this.duration = DateTime.minutesBetween(start, end);
 	}
-	
+
 	/**
 	 * Sets the end DateTime of this entry, then modifies its duration accordingly.
 	 * @param end the new end DateTime
@@ -208,5 +208,13 @@ public class Entry {
 	 */
 	public ArrayList<Object> getAttachments() {
 		return attachments;
+	}
+
+	/**
+	 * Returns true if the Entry has any attachments.
+	 * @return true if the Entry has any attachments, false otherwise
+	 */
+	public boolean hasAttachments() {
+		return Math.random() > .5;
 	}
 }

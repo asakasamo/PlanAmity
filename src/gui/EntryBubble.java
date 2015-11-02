@@ -78,8 +78,8 @@ public class EntryBubble extends StackPane implements EntryCell {
 		
 		//attachmentIndicator
 		attachmentIndicator = new Rectangle(20,20);
-		if(entry.getAttachments().isEmpty()) attachmentIndicator.setOpacity(0);
-		setAlignment(attachmentIndicator, Pos.BOTTOM_LEFT);
+		if(!entry.hasAttachments()) attachmentIndicator.setOpacity(0);
+		setAlignment(attachmentIndicator, Pos.BOTTOM_RIGHT);
 		
 		//set background to owner's color
 		Color assigned;
@@ -107,40 +107,21 @@ public class EntryBubble extends StackPane implements EntryCell {
 	 */
 	public void initInputResponses() {
 		EntryBubble eb = this;
-//		GUI.makeDraggable(this, true);
 		
+		//Click the bubble
 		this.setOnMouseClicked(new EventHandler<MouseEvent>(){
 			@Override
 			public void handle(MouseEvent event) {
-				// TODO Auto-generated method stub
 				projectView.entryClicked(event, eb);
 			}
 		});
 		
-		projectView.setOnDragOver(new EventHandler<DragEvent>(){
-
-			@Override
-			public void handle(DragEvent event) {
-				// TODO Auto-generated method stub
-//				System.out.println("huh");
-//				projectView.entryClicked(null, eb);
-			}
-			
-		});
-		
+		//Drag into the bubble
 		this.setOnMouseDragEntered(new EventHandler<MouseEvent>(){
-
 			@Override
 			public void handle(MouseEvent event) {
-				// TODO Auto-generated method stub
 				projectView.entryClicked(null, eb);
-				
 			}
-			
 		});
-	}
-	
-	public static final DataFormat dataFormat() { 
-		return new DataFormat("EntryBubble");
 	}
 }

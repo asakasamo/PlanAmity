@@ -10,7 +10,15 @@ import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 
-public class AddButton extends VBox {
+/**
+ * The PlusButton class is the controller for the Plus Button, which is the primary element in the 
+ * interface used to add new Entries to the project. The PlusButton is attached to a single ProjectView,
+ * and sends triggers to it based on which half of the button is clicked.
+ * 
+ * @author Al-John
+ *
+ */
+public class PlusButton extends VBox {
 	private double width;
 	private double height;
 
@@ -21,7 +29,7 @@ public class AddButton extends VBox {
 
 	ProjectView projectView;
 
-	public AddButton(ProjectView pv){
+	public PlusButton(ProjectView pv){
 		width = height = 150;
 		projectView = pv;
 
@@ -31,12 +39,12 @@ public class AddButton extends VBox {
 		topHalf = new Pane();
 		botHalf = new Pane();
 
-		//sets clip to hide overflow
+		//hide the overflow (for the half-circle effect)
 		topHalf.setClip(new Rectangle(width, height/2));
 		botHalf.setClip(new Rectangle(width, height/2));
 
 		//Color indicators for top and bottom halves
-				topHalf.setStyle("-fx-background-color:pink");
+//				topHalf.setStyle("-fx-background-color:pink");
 		//		botHalf.setStyle("-fx-background-color:purple");
 		//		this.setStyle("-fx-background-color:yellow");
 
@@ -60,6 +68,11 @@ public class AddButton extends VBox {
 		this.getChildren().add(botHalf);
 	}
 
+	/**
+	 * As of now, sets all of the mouse events for the half-circles in the PlusButton.
+	 * @param n the Circle
+	 * @return the same Circle
+	 */
 	private Circle hoverMe(Circle n){
 		Paint orig = n.getFill();
 
