@@ -3,7 +3,7 @@ package application;
 import data.Entry;
 import data.User;
 import gui.GUI;
-import gui.ProjectView;
+import gui.screens.ProjectView;
 import javafx.application.Application;
 import javafx.scene.Node;
 import javafx.scene.Scene;
@@ -14,8 +14,11 @@ import javafx.scene.paint.Color;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
 
-//PlanAmity
-
+/**
+ * Main entry class for PlanAmity.
+ * @author Al-John
+ *
+ */
 public class Main extends Application {
 	@Override
 	public void start(Stage primaryStage) {
@@ -25,8 +28,8 @@ public class Main extends Application {
 		scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 
 		//Ideally, add the main menu here.
-		root.getChildren().add(new ProjectView());
-
+//		root.getChildren().add(new ProjectView(null));
+		
 		primaryStage.initStyle(StageStyle.TRANSPARENT);
 		primaryStage.setScene(scene);
 		primaryStage.show();

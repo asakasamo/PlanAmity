@@ -1,4 +1,4 @@
-package gui;
+package gui.controls;
 
 /**
  * The EntryCell interface represents any visual representation of a single Entry in the interface.

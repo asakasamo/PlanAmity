@@ -1,27 +1,39 @@
-package gui;
+package gui.screens;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import data.Entry;
+import data.Project;
+import gui.GUI;
+import gui.controls.EntryBubble;
+import gui.controls.EntryCell;
+import gui.controls.PlusButton;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
-import javafx.event.EventHandler;
-import javafx.scene.Group;
-import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.util.Duration;
 
+/**
+ * Controller class for the Project View. Keeps track of a Project object, and handles all of the user
+ * interaction with the interface, modifying the project as necessary.
+ * 
+ * @author Al-John
+ *
+ */
 public class ProjectView extends Pane {
 
 	private EntryBubble focus; 								//TODO: Abstract the entries into Bubbles & SubEntries
 	private List<EntryBubble> mainEntries; 					//main entries
 	private final int CELL_WIDTH = EntryBubble.WIDTH + 10;	//width of the cells of the main entries
+	private Project project;
 
-	public ProjectView() {
+	public ProjectView(Project project) {
+		
+		this.project = project;
 
 		//solid green background
 		this.setStyle("-fx-background-color:green");
@@ -29,8 +41,8 @@ public class ProjectView extends Pane {
 		focus = null;
 
 		//set view dimensions
-		//		this.setPrefWidth(GUI.WINDOW_WIDTH);
-		//		this.setPrefHeight(GUI.WINDOW_HEIGHT);
+//		this.setPrefWidth(GUI.WINDOW_WIDTH);
+//		this.setPrefHeight(GUI.WINDOW_HEIGHT);
 
 		PlusButton button = new PlusButton(this);
 		GUI.makeDraggable(button);

@@ -1,4 +1,4 @@
-package gui;
+package gui.screens;
 
 public class StartupMenu {
 

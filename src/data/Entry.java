@@ -25,6 +25,11 @@ public class Entry {
 	private User lastModifiedBy;
 	private ArrayList<Object> attachments;
 
+	/**
+	 * Creates an empty Entry with a specified name. The other attributes are set to null, and
+	 * the start and end time are set to the moment of creation.
+	 * @param name the Entry's name
+	 */
 	public Entry(String name){
 		this.name = name;
 		description = "";
@@ -42,6 +47,11 @@ public class Entry {
 		attachments = new ArrayList<Object>();
 	}
 
+	/**
+	 * Creates an empty entry, with its name and parent Entry specified.
+	 * @param name the Entry's name
+	 * @param parent the Entry's parent Entry
+	 */
 	public Entry(String name, Entry parent){
 		this(name);
 		this.parent = parent;

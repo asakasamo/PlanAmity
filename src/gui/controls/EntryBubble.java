@@ -1,6 +1,7 @@
-package gui;
+package gui.controls;
 
 import data.Entry;
+import gui.screens.ProjectView;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;

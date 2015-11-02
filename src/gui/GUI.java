@@ -64,6 +64,12 @@ public final class GUI {
 		});
 	}
 
+	/**
+	 * Converts a Color to a String of its RGB code (for use in CSS).
+	 * For example, passing in Color.BLACK returns "#000000".
+	 * @param color the color
+	 * @return the RGB code
+	 */
 	public static String toRGBCode( Color color ) {
 		return String.format( "#%02X%02X%02X",
 				(int)( color.getRed() * 255 ),
