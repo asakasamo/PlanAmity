@@ -21,9 +21,8 @@ public class Project {
 	private List<Entry> entries;
 	private List<User> participants;
 	
-	public Project(String name, String description, DateTime start, DateTime end) {
+	public Project(String name, DateTime start, DateTime end) {
 		this.name = name;
-		this.description = description;
 		this.start = start;
 		this.end = end;
 		duration = DateTime.minutesBetween(start, end);
@@ -119,8 +118,8 @@ public class Project {
 		//set start of the 2nd event to the start of the 1st event
 		e2.setStart(e1.getStart(), true);
 		//set start of the 1st event to the end of the 2nd event, plus whatever time gap there was
-		e1.setStart(DateTime.getLaterDateTime(gap, e2.getEnd()), true);;
-		
+		e1.setStart(e2.getEnd().getLaterDateTime(gap), true);
+
 		entries.set(idx2, e1);
 		entries.set(idx1, e2);
 	}

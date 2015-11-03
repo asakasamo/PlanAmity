@@ -1,5 +1,6 @@
 package data;
 
+import java.time.LocalDate;
 import java.util.GregorianCalendar;
 import java.util.concurrent.TimeUnit;
 
@@ -13,7 +14,22 @@ public class DateTime extends GregorianCalendar {
 
 	private static final long serialVersionUID = 1L;
 
-	/**
+    /**
+     * Creates a new DateTime at the current moment in time.
+     */
+    public DateTime() {
+        super();
+    }
+
+    /**
+     * Creates a DateTime out of a specified LocalDate object, using its month, day, and year.
+     * @param date the LocalDate object
+     */
+    public DateTime(LocalDate date) {
+        super(date.getYear(), date.getMonthValue(), date.getDayOfMonth());
+    }
+
+    /**
 	 * Returns the amount of time between two specified DateTimes, in minutes.
 	 * @param t1 DateTime a
 	 * @param t2 DateTime b
@@ -25,13 +41,12 @@ public class DateTime extends GregorianCalendar {
 	}
 	
 	/**
-	 * Returns a DateTime that is a specified number of minutes after a specified DateTime.
+	 * Returns a DateTime that is a specified number of minutes after this DateTime
 	 * @param mins the number of minutes
-	 * @param from the reference DateTime
-	 * @return a DateTime mins minutes from d
+	 * @return a DateTime mins minutes from this DateTime
 	 */
-	public static DateTime getLaterDateTime(int mins, DateTime from){
-		DateTime dt = (DateTime)from.clone();
+	public DateTime getLaterDateTime(int mins){
+		DateTime dt = (DateTime)this.clone();
 		dt.add(DateTime.MINUTE, mins);
 		return dt;
 	}

@@ -110,7 +110,7 @@ public class Entry {
 	 */
 	public void setDuration(int dur){
 		this.duration = dur;
-		end = DateTime.getLaterDateTime(dur, start);
+		end = start.getLaterDateTime(dur);
 	}
 
 	/**
@@ -122,7 +122,7 @@ public class Entry {
 	 */
 	public void setStart(DateTime start, boolean keepDur){
 		this.start = start;
-		if(keepDur)	end = DateTime.getLaterDateTime(duration, start);
+		if(keepDur)	end = start.getLaterDateTime(duration);
 		else this.duration = DateTime.minutesBetween(start, end);
 	}
 

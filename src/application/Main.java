@@ -2,6 +2,7 @@ package application;
 
 import gui.GUI;
 import gui.screens.ProjectView;
+import gui.screens.StartupMenu;
 import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
@@ -31,8 +32,9 @@ public class Main extends Application {
 		scene.getStylesheets().add(getClass().getResource("application.css").toExternalForm());
 
 		//Ideally, add the main menu here.
+        StartupMenu menu = new StartupMenu();
 		ProjectView pv = new ProjectView(null);
-		root.getChildren().add(pv);
+		root.getChildren().add(menu);
 		
 		primaryStage.initStyle(StageStyle.TRANSPARENT);
 		primaryStage.setScene(scene);
@@ -41,14 +43,14 @@ public class Main extends Application {
 		
 		primaryStage.show();
 		
-		final Timeline timeline = new Timeline();
-		final KeyValue kv = new KeyValue(pv.translateXProperty(), -2000, Interpolator.EASE_BOTH);
-		final KeyFrame kf = new KeyFrame(Duration.millis(2000), kv);
-		timeline.getKeyFrames().add(kf);
-
-		timeline.setOnFinished((ActionEvent event) -> root.getChildren().set(0, new ProjectView(null)));
-
-		timeline.play();
+//		final Timeline timeline = new Timeline();
+//		final KeyValue kv = new KeyValue(pv.translateXProperty(), -2000, Interpolator.EASE_BOTH);
+//		final KeyFrame kf = new KeyFrame(Duration.millis(2000), kv);
+//		timeline.getKeyFrames().add(kf);
+//
+//		timeline.setOnFinished((ActionEvent event) -> root.getChildren().set(0, new ProjectView(null)));
+//
+//		timeline.play();
 	}
 
 	public static void main(String[] args) {
