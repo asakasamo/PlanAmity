@@ -13,6 +13,7 @@ import javafx.animation.Interpolator;
 import javafx.animation.KeyFrame;
 import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
+import javafx.scene.control.SplitPane;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.util.Duration;
@@ -41,8 +42,8 @@ public class ProjectView extends Pane {
 		focus = null;
 
 		//set view dimensions
-//		this.setPrefWidth(GUI.WINDOW_WIDTH);
-//		this.setPrefHeight(GUI.WINDOW_HEIGHT);
+        prefWidthProperty().bind(GUI.primaryStage.widthProperty());
+        prefHeightProperty().bind(GUI.primaryStage.heightProperty());
 
 		PlusButton button = new PlusButton(this);
 		GUI.makeDraggable(button);

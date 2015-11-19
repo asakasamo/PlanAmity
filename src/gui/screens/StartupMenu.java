@@ -3,15 +3,15 @@ package gui.screens;
 import data.DateTime;
 import data.Project;
 import data.User;
+import gui.GUI;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.geometry.Insets;
-import javafx.scene.control.Button;
-import javafx.scene.control.ColorPicker;
-import javafx.scene.control.DatePicker;
-import javafx.scene.control.TextField;
-import javafx.scene.layout.HBox;
-import javafx.scene.layout.VBox;
+import javafx.geometry.Pos;
+import javafx.scene.Node;
+import javafx.scene.control.*;
+import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +25,7 @@ import java.util.List;
  * Exit button
  *
  * RIGHT:
- * Login indicator
+ * TODO: Login indicator
  * New Project form
  *  - Title
  *  - Start Date
@@ -34,10 +34,10 @@ import java.util.List;
  *      - Name, Initials, Title
  *  - Crossover Time period
  */
-public class StartupMenu extends HBox {
+public class StartupMenu extends SplitPane {
 
-    private double width;
-    private double height;
+//    private double width;
+//    private double height;
 
     private Button openProjectBtn;
     private Button recentProjectsBtn;
@@ -51,48 +51,66 @@ public class StartupMenu extends HBox {
     private List<ParticipantForm> participantList;
 
     public StartupMenu() {
-        width = 700;
-        height = 500;
+        prefWidthProperty().bind(GUI.primaryStage.widthProperty());
+        prefHeightProperty().bind(GUI.primaryStage.heightProperty());
+//        this.scaleXProperty().bind(GUI.ZOOM);
+//        this.scaleYProperty().bind(GUI.ZOOM);
 
-        this.setMaxWidth(width);
-        this.setMaxHeight(height);
-        this.setStyle("-fx-background-color:orange");
+        getStyleClass().add("startup-split-pane");
+
+        this.setStyle("-fx-background-color:transparent");
 
         openProjectBtn = new Button("Open Project");
         recentProjectsBtn = new Button("Recent Projects");
         exitBtn = new Button("Exit");
 
-        projectTitleTxt = new TextField("Project Title");
+        projectTitleTxt = new TextField();
+        projectTitleTxt.setPromptText("Project Title");
         startDatePicker = new DatePicker();
+        startDatePicker.setPromptText("Start Date");
         endDatePicker = new DatePicker();
+        endDatePicker.setPromptText("End Date (Ideally)");
 
         //create participants list
         participantList = new ArrayList<>();
         for(int i = 0; i < 3; i++)
             participantList.add(new ParticipantForm());
 
-        startBtn = new Button("Start Project!");
+        startBtn = new Button("+");
 
         //crates the left side of the menu
         VBox leftSide = new VBox();
-        leftSide.setPadding(new Insets(5, 5, 5, 5));
-        leftSide.setPrefWidth(width / 2);
+        leftSide.setPadding(new Insets(100, 50, 50, 50));
         leftSide.getChildren().addAll(openProjectBtn,
                 recentProjectsBtn,
                 exitBtn);
+        leftSide.setStyle("-fx-background-color:blue");
+        leftSide.setAlignment(Pos.TOP_RIGHT);
+        leftSide.setSpacing(7);
 
         //creates the right side of the menu
         VBox rightSide = new VBox();
-        rightSide.setPadding(new Insets(5, 5, 5, 5));
-        rightSide.setPrefWidth(width / 2);
+        rightSide.setPadding(new Insets(100, 50, 50, 50));
         rightSide.getChildren().addAll(projectTitleTxt,
                 startDatePicker,
                 endDatePicker);
         rightSide.getChildren().addAll(participantList);
         rightSide.getChildren().add(startBtn);
+        rightSide.setStyle("-fx-background-color:green");
+        rightSide.setAlignment(Pos.TOP_LEFT);
+        rightSide.setSpacing(7);
 
         //adds the left and right sides
-        this.getChildren().addAll(leftSide, rightSide);
+        getItems().addAll(leftSide, rightSide);
+
+        setButtonFunctions();
+    }
+
+    public void fixDivider() {
+        lookupAll(".split-pane-divider").stream().forEach(
+                div -> div.setMouseTransparent(true) ); //disable divider
+
+        setDividerPositions(.333);
     }
 
     private class ParticipantForm extends HBox {
@@ -103,44 +121,34 @@ public class StartupMenu extends HBox {
 
         public ParticipantForm() {
             colorPicker = new ColorPicker(); //TODO: Make a custom color picker (https://community.oracle.com/thread/2318310)
-            nameField = new TextField("Name");
-            initialsField = new TextField("Initials");
-            roleField = new TextField("Title");
-
-            clearOnFocus(nameField);
-            clearOnFocus(initialsField);
-            clearOnFocus(roleField);
+            nameField = new TextField();
+            nameField.setPromptText("Name");
+            initialsField = new TextField();
+            initialsField.setPromptText("Initials");
+            roleField = new TextField();
+            roleField.setPromptText("Role");
 
             this.getChildren().addAll(colorPicker, nameField, initialsField, roleField);
+            this.setSpacing(7);
         }
     }
 
-    /**
-     * Adds a listener that clears a specified TextField on its first focus only, then removes the listener.
-     * @param tf the specified TextField
-     */
-    public void clearOnFocus(final TextField tf) {
-
-        final ChangeListener<Boolean> onFocus = new ChangeListener<Boolean>() {
-            @Override
-            public void changed(ObservableValue<? extends Boolean> obs, Boolean old, Boolean isFocused) {
-                if (isFocused) {
-                    tf.setText("");
-                    tf.focusedProperty().removeListener(this);
-                }
-            }};
-
-        tf.focusedProperty().addListener(onFocus);
-    }
-
     public Project createProjectFromFields() {
+        //TODO: Validate form
+
         Project p = new Project(projectTitleTxt.getText(), new DateTime(startDatePicker.getValue()),
-                        new DateTime(endDatePicker.getValue()));
+                new DateTime(endDatePicker.getValue()));
 
         for(ParticipantForm pf : participantList) {
             p.addParticipants(new User(pf.nameField.getText(), pf.colorPicker.getValue(), pf.roleField.getText()));
         }
 
         return p;
+    }
+
+    private void setButtonFunctions() {
+        exitBtn.setOnMouseClicked((MouseEvent me) -> GUI.exit());
+        startBtn.setOnMouseClicked((MouseEvent me) -> {
+        });
     }
 }
