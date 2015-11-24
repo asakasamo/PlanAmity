@@ -1,16 +1,14 @@
 package gui.controls;
 
 import data.Entry;
-import gui.screens.ProjectView;
-import javafx.event.EventHandler;
+import gui.GUI;
 import javafx.geometry.Insets;
-import javafx.geometry.Pos;
-import javafx.scene.input.DataFormat;
-import javafx.scene.input.DragEvent;
+import javafx.scene.Node;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Circle;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
 
@@ -23,99 +21,148 @@ import javafx.scene.text.Text;
  * @author Al-John
  *
  */
-public class BubbleEntry extends StackPane implements EntryCell {
-	public static final int WIDTH = 200;
-	public static final int HEIGHT = 100;
+public class BubbleEntry extends Pane implements EntryCell {
+	public static final int WIDTH = 100;
+	public static final int HEIGHT = 50;
 
 	private Entry entry;
-	
-	private Circle progressIndicator;
-	private Rectangle lastModifiedIndicator;
-	private Text nameIndicator;
-	private Rectangle attachmentIndicator;
-	private ProjectView projectView;
-	
-	private double width;
-	private double height;
+
+//	private Circle progressIndicator;
+//	private Rectangle lastModifiedIndicator;
+//	private Rectangle attachmentIndicator;
+
+    private StackPane container;
+    private Text nameIndicator;
+    private VBox topContainer;
+    private VBox subContainer;
+    private EntryBar entryBar;
+
+    private boolean expanded;
 	
 	/**
 	 * Creates an EntryBubble and assigns an entry to it.
 	 * @param entry the entry assigned to this bubble
-	 * @param pv the ProjectView associated with this EntryBubble
      * @param x the x coordinate
      * @param y the y coordinate
 	 */
-	public BubbleEntry(Entry entry, ProjectView pv, double x, double y) {
-		width = 200;
-		height = 100;
-		
+	public BubbleEntry(Entry entry, double x, double y, EntryBar entryBar) {
+        expanded = false;
+        container = new StackPane();
+        topContainer = new VBox();
+        subContainer = new VBox();
+        this.entryBar = entryBar;
+
+        //TODO: fix the bounds of this crazy thing
 		this.setTranslateX(x);
 		this.setTranslateY(y);
-		this.setMinWidth(width);
-		this.setMinHeight(height);
-		this.setPadding(new Insets(5,5,5,5));
+
+		container.setPadding(new Insets(5,5,5,5));
 		this.entry = entry;
-		projectView = pv;
-		
-		//progress indicator
-		progressIndicator = new Circle(20);
-		Color prog;
-		switch(entry.getPercentComplete()) {
-			case 0: prog = Color.RED; break;
-			case 100: prog = Color.GREEN; break;
-			default: prog = Color.YELLOW;
-		}
-		progressIndicator.setFill(prog);
-		setAlignment(progressIndicator, Pos.TOP_LEFT);
-		
-		//last modified indicator
-		lastModifiedIndicator = new Rectangle(50,50);
-		Color lastmod;
-		if(entry.getLastModifiedBy() == null) lastmod = Color.GRAY;
-		else lastmod = entry.getLastModifiedBy().getColor();
-		lastModifiedIndicator.setFill(lastmod);
-		setAlignment(lastModifiedIndicator, Pos.TOP_RIGHT);
 		
 		//name indicator
 		nameIndicator = new Text(entry.getName());
 		nameIndicator.getStyleClass().add("bubbleText");
 		
-		//attachmentIndicator
-		attachmentIndicator = new Rectangle(20,20);
-		if(!entry.hasAttachments()) attachmentIndicator.setOpacity(0);
-		setAlignment(attachmentIndicator, Pos.BOTTOM_RIGHT);
-		
 		//set background to owner's color
 		Color assigned;
 		if(entry.getAssignedTo() == null) assigned = Color.STEELBLUE;
 		else assigned = entry.getAssignedTo().getColor();
-		Rectangle background = new Rectangle(width,height);
+		Rectangle background = new Rectangle(WIDTH - 5, HEIGHT - 5);
 		background.getStyleClass().add("bubble-bg");
 		background.setFill(assigned);
-		//this.setStyle("-fx-background-color:" + GUI.toRGBCode(assigned));
+//		container.setStyle("-fx-background-color:" + GUI.toRGBCode(assigned));
 		
 		//style
-		this.getStyleClass().add("bubble");
+		container.getStyleClass().add("bubble");
 		
-		this.getChildren().addAll( background,
-				progressIndicator, 
-				lastModifiedIndicator, 
-				nameIndicator, 
-				attachmentIndicator);
-		
+		container.getChildren().addAll( background,
+//				progressIndicator,
+//				lastModifiedIndicator,
+				nameIndicator
+//				attachmentIndicator
+        );
+
+        topContainer.getChildren().add(container);
+
+        subContainer.setTranslateX(10);
+        topContainer.getChildren().add(subContainer);
+
+        this.getChildren().add(topContainer);
+
 		initInputResponses();
 	}
+
+    public Entry getEntry() {
+        return entry;
+    }
+
+    public Node getRoot() {
+        return this;
+    }
+
+    private static final class DragContext {
+        double x;
+        int idx;
+    }
 	
 	/**
 	 * Initializes the bubble's responses to user input.
 	 */
 	public void initInputResponses() {
-		BubbleEntry eb = this;
 		
 		//Click the bubble
-        this.setOnMouseClicked((MouseEvent event) -> projectView.entryClicked(event, eb));
-		
-		//Drag into the bubble
-        this.setOnMouseDragEntered((MouseEvent event) -> projectView.entryClicked(null, eb));
+        container.setOnMouseClicked((MouseEvent event) -> {
+            System.out.println(entry);
+
+            if(expanded) retract();
+            else expand();
+
+            GUI.screenController.setFocus(this);
+        });
+
+        final DragContext drag = new DragContext();
+
+        //stores the beginning position of the mouse
+        setOnMousePressed((MouseEvent mouseEvent) -> {
+            drag.x = this.getTranslateX() - mouseEvent.getSceneX();
+            drag.idx = entryBar.overIdx(mouseEvent.getSceneX());
+        });
+
+        //actually moves the node
+        this.setOnMouseDragged((MouseEvent mouseEvent) ->{
+
+            this.setTranslateX(mouseEvent.getSceneX() + drag.x);
+
+            int idx = entryBar.overIdx(mouseEvent.getSceneX());
+            entryBar.setMoving(idx);
+
+            if(idx != drag.idx) {
+                entryBar.swap(idx, drag.idx);
+                drag.idx = idx;
+            }
+
+        });
+
+        this.setOnMouseReleased((MouseEvent event) -> {
+            GUI.moveTo(this,
+                    EntryBar.getProperX(entryBar.overIdx(event.getSceneX())),
+                    this.getTranslateY()).play();
+
+            System.out.println(event.getX());
+        });
 	}
+
+    public void expand() {
+        int i = 0;
+        for (Entry e : entry.getChildren()) {
+            subContainer.getChildren().add(new ListEntry(e, i++));
+        }
+        expanded = true;
+    }
+
+    @Override
+    public void retract() {
+        subContainer.getChildren().removeAll(subContainer.getChildren());
+        expanded = false;
+    }
 }

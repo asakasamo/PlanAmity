@@ -1,20 +1,21 @@
 * {
-    -fx-font-size: 1.5em;
-    -fx-font-weight: bold;
-    -fx-background-color:transparent;
+    -fx-font-size: 1.2em;
 }
 
 .button, .text-field, .color-picker {
-    -fx-background-color:yellow;
+    -fx-background-color:cornsilk;
 }
 
 .button:hover, .text-field:hover, .color-picker:hover,
 .button:focused, .text-field:focused, .color-picker:focused {
-    -fx-background-color:red;
+    -fx-background-color:yellow;
+}
+
+.focused {
+    -fx-background-color:yellow;
 }
 
 .bubbleText{
-	-fx-font-size: 30px;
 	-fx-fill: white;
 	-fx-font-weight:bold;
 }
@@ -32,11 +33,22 @@
 	-fx-background-color:yellow;
 }
 
+.split-pane {
+    -fx-background-color: -fx-control-inner-background;
+    -fx-background-insets: 0;
+    -fx-padding: 0;
+}
+
 .startup-split-pane {
-    -fx-background-color:black;
+    -fx-background-color:red;
 }
 
 .split-pane-divider {
     -fx-background-color: transparent;
     -fx-padding: 0;
+}
+
+.button.menuBar  {
+    -fx-font-size: 10px;
+    -fx-font-weight: normal;
 }

@@ -1,6 +1,8 @@
 package data;
 
 import java.util.ArrayList;
+import java.util.List;
+
 import javafx.scene.paint.Color;
 
 /**
@@ -19,26 +21,26 @@ public class Entry {
 	private int percentComplete;
 
 	private Entry parent;
-	private ArrayList<Entry> children;
+	private List<Entry> children;
 
-	private User assignedTo;
-	private User lastModifiedBy;
-	private ArrayList<Object> attachments;
+	private Participant assignedTo;
+	private Participant lastModifiedBy;
+	private List<Object> attachments;
 
 	/**
 	 * Creates an empty Entry with a specified name. The other attributes are set to null, and
 	 * the start and end time are set to the moment of creation.
 	 * @param name the Entry's name
 	 */
-	public Entry(String name){
+	public Entry(String name, DateTime start, DateTime end){
 		this.name = name;
 		description = "";
 
 		parent = null;
 		children = new ArrayList<>();
 
-		start = new DateTime();
-		end = new DateTime();
+		this.start = start;
+		this.end = end;
 		duration = 0;
 		percentComplete = 0;
 
@@ -52,10 +54,10 @@ public class Entry {
 	 * @param name the Entry's name
 	 * @param parent the Entry's parent Entry
 	 */
-	public Entry(String name, Entry parent){
-		this(name);
+	public Entry(String name, DateTime start, DateTime end, Entry parent){
+		this(name, start, end);
 		this.parent = parent;
-		parent.children.add(this);
+        if(parent != null) parent.children.add(this);
 	}
 
 	/**
@@ -66,7 +68,7 @@ public class Entry {
 	/**
 	 * @return This entry's child entries.
 	 */
-	public ArrayList<Entry> getChildren() { return children; }
+	public List<Entry> getChildren() { return children; }
 
 	/**
 	 * @return This entry's name.
@@ -77,13 +79,13 @@ public class Entry {
 	 * Assigns the entry to a specified user.
 	 * @param u the user to assign the entry to
 	 */
-	public void assignTo(User u) { 
+	public void assignTo(Participant u) {
 		assignedTo = u; 
 		u.addAssignment(this);
 	}
 
 	/**
-	 * @return the color associated with this User.
+	 * @return the color associated with this Participant.
 	 */
 	public Color getColor() {
 		if(assignedTo == null)
@@ -96,7 +98,7 @@ public class Entry {
 	 * Returns the user this entry is assigned to.
 	 * @return the user this entry is assigned to
 	 */
-	public User getAssignedTo() { return assignedTo; }
+	public Participant getAssignedTo() { return assignedTo; }
 
 	/**
 	 * 
@@ -153,14 +155,14 @@ public class Entry {
 	/**
 	 * @return the lastModifiedBy
 	 */
-	public User getLastModifiedBy() {
+	public Participant getLastModifiedBy() {
 		return lastModifiedBy;
 	}
 
 	/**
-	 * @param lastModifiedBy the User that last modified this Entry
+	 * @param lastModifiedBy the Participant that last modified this Entry
 	 */
-	public void setLastModifiedBy(User lastModifiedBy) {
+	public void setLastModifiedBy(Participant lastModifiedBy) {
 		this.lastModifiedBy = lastModifiedBy;
 	}
 
@@ -193,9 +195,9 @@ public class Entry {
 	}
 
 	/**
-	 * @param assignedTo the User this Entry is assigned to
+	 * @param assignedTo the Participant this Entry is assigned to
 	 */
-	public void setAssignedTo(User assignedTo) {
+	public void setAssignedTo(Participant assignedTo) {
 		this.assignedTo = assignedTo;
 	}
 
@@ -216,7 +218,7 @@ public class Entry {
 	/**
 	 * @return the attachments
 	 */
-	public ArrayList<Object> getAttachments() {
+	public List<Object> getAttachments() {
 		return attachments;
 	}
 
@@ -227,4 +229,14 @@ public class Entry {
 	public boolean hasAttachments() {
 		return Math.random() > .5;
 	}
+
+    public String toString() {
+        return "[Name: " + name + "; start:" + start + "; end:" + end + ";]";
+    }
+
+    public static void swap(Entry e1, Entry e2) {
+        DateTime tmp = e2.getStart();
+        e2.setStart(e1.getStart(), true);
+        e1.setStart(tmp, true);
+    }
 }

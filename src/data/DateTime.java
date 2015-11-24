@@ -50,4 +50,8 @@ public class DateTime extends GregorianCalendar {
 		dt.add(DateTime.MINUTE, mins);
 		return dt;
 	}
+
+    public String toString() {
+        return (this.get(DateTime.MONTH) + 1) + "/" + this.get(DateTime.DAY_OF_MONTH) + "/" + this.get(DateTime.YEAR);
+    }
 }

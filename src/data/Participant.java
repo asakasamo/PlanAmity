@@ -9,31 +9,33 @@ import java.util.List;
 import javafx.scene.paint.Color;
 
 /**
- * The User class represents a single participant of a project.
+ * The Participant class represents a single participant of a project.
  * @author Al-John
  *
  */
-public class User {
+public class Participant {
 	
 	private String name;
+    private String initials;
 	private Color color;
 	private String role;
 	private List<Entry> assignments;
-	public User(String name, Color color, String role) {
+	public Participant(String name, String initials, Color color, String role) {
 		this.name = name;
+        this.initials = initials;
 		this.color = color;
 		this.role = role;
-		assignments = new ArrayList<Entry>();
+		assignments = new ArrayList<>();
 	}
 	
 	/**
-	 * Adds an entry to the User's assignments.
+	 * Adds an entry to the Participant's assignments.
 	 * @param e the entry to add
 	 */
 	public void addAssignment(Entry e) { assignments.add(e); }
 	
 	/**
-	 * Removes an entry from the User's assignments.
+	 * Removes an entry from the Participant's assignments.
 	 * @param e the entry to remove
 	 */
 	public void removeAssignment(Entry e) { assignments.remove(e); }
@@ -50,9 +52,15 @@ public class User {
 	public List<Entry> getAssignments() 	{ return assignments; }
 	
 	/**
-	 * @return the User's name 
+	 * @return the Participant's name
 	 */
 	public String getName() { return name; }
+
+    /**
+     *
+     * @return this Participant's initials
+     */
+    public String getInitials() { return initials; }
 
 	/**
 	 * Sets the user's name.
@@ -61,7 +69,7 @@ public class User {
 	public void setName(String name) { this.name = name; }
 
 	/**
-	 * @return the User's current role
+	 * @return the Participant's current role
 	 */
 	public String getRole() { return role; }
 
@@ -78,6 +86,6 @@ public class User {
 	public void setColor(Color color) { this.color = color; }
 
 	public String toString(){
-		return name + " (" + role + ")";
+		return name + " (" + color + ", " + role + ")";
 	}
 }

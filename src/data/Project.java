@@ -4,6 +4,7 @@
 package data;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -14,12 +15,15 @@ import java.util.List;
  */
 public class Project {
 	private String name;
-	private String description;
 	private DateTime start;
 	private DateTime end;
 	private int duration;
 	private List<Entry> entries;
-	private List<User> participants;
+	private List<Participant> participants;
+
+    public Project() {
+        this("##BLANK PROJECT##", new DateTime(), new DateTime());
+    }
 	
 	public Project(String name, DateTime start, DateTime end) {
 		this.name = name;
@@ -40,16 +44,6 @@ public class Project {
 	 * @param name The new project name
 	 */
 	public void setName(String name) { this.name = name; }
-
-	/**
-	 * @return the description
-	 */
-	public String getDescription() { return description; }
-
-	/**
-	 * @param description The new project description
-	 */
-	public void setDescription(String description) { this.description = description; }
 
 	/**
 	 * @return The start date of the project
@@ -73,27 +67,24 @@ public class Project {
 	
 	/**
 	 * Adds (a) participant(s) to the project.
-	 * @param users The participants of the project
+	 * @param participants The participants of the project
 	 */
-	public void addParticipants(User... users){
-		for(User u : users){
-			this.participants.add(u);
-		}
+	public void addParticipants(Participant... participants){
+        Collections.addAll(this.participants, participants);
 	}
 	
 	/**
 	 * Removes a participant from the project.
 	 * @param p the participant to remove
 	 */
-	public void removeParticipant(User p) { participants.remove(p); }
+	public void removeParticipant(Participant p) { participants.remove(p); }
 	
 	/**
 	 * Adds one or more entries to the project.
 	 * @param entries the entry (or entries) to add
 	 */
 	public void addEntries(Entry... entries){ 
-		for(Entry e : entries)
-            this.entries.add(e);
+		Collections.addAll(this.entries, entries);
 	}
 	
 	/**
@@ -129,5 +120,33 @@ public class Project {
 	 * @return the duration of the project, in minutes
 	 */
 	public int getDuration() { return duration; }
-	
+
+    @Override
+    public String toString() {
+        String s = "Project { \n\tName:" + name + ", \n\t" +
+                "start:" + start + ", \n\t" +
+                "end:" + end + ", \n\t" +
+                entries.size() + " Entries, \n\t" +
+                participants.size() + " Participants: {  ";
+
+        for (Participant p : participants) {
+            s += "[" + p + "]; ";
+        }
+        s = s.substring(0, s.length() -2);
+        s += "  }\n}";
+
+        return s;
+    }
+
+    /**
+     * Returns this Project's participants.
+     * @return this Project's participants
+     */
+    public List<Participant> getParticipants() {
+        return participants;
+    }
+
+    public List<Entry> getEntries() {
+        return entries;
+    }
 }

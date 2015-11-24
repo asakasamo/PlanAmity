@@ -1,20 +1,23 @@
 package gui;
 
 import application.Main;
-import gui.screens.ProjectView;
-import gui.screens.StartupMenu;
+import gui.screens.ScreenController;
+import javafx.animation.Interpolator;
+import javafx.animation.KeyFrame;
+import javafx.animation.KeyValue;
+import javafx.animation.Timeline;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.scene.Group;
+import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
 import javafx.stage.StageStyle;
+import javafx.util.Duration;
 
 /**
  * Class that provides general functions that will be used throughout the GUI.
@@ -54,8 +57,9 @@ public final class GUI {
      */
     protected static double globalScale;
 
+    public static ScreenController screenController; //this is the root node!
+
     public static Stage primaryStage;
-    protected static Group root; //TODO: Root is a ScreenController
 
     private GUI() {}
 
@@ -105,11 +109,11 @@ public final class GUI {
      */
     private static void initStage(){
         primaryStage.initStyle(StageStyle.TRANSPARENT);
+        primaryStage.setMaximized(false);
 
         primaryStage.setMinWidth(GUI_width);
         primaryStage.setMinHeight(GUI_height);
 
-//        primaryStage.setMaximized(true);
         primaryStage.setTitle("planAmity");
         primaryStage.setResizable(true);
     }
@@ -118,9 +122,10 @@ public final class GUI {
      * Initializes the Scene, including its root Node, and assigns it to the primary Stage.
      */
     private static void initScene() {
-        root = new Group(); //TODO: init to a ScreenController
+        screenController = new ScreenController();
 
-        Scene scene = new Scene(root, GUI_width, GUI_height, Color.TRANSPARENT);
+        Scene scene = new Scene(screenController, GUI_width, GUI_height, Color.TRANSPARENT);
+
         scene.getStylesheets().add(Main.instance().getClass().getResource("application.css").toExternalForm());
 
         primaryStage.setScene(scene);
@@ -131,16 +136,9 @@ public final class GUI {
      * Starts the program - only to be called after init() has completed.
      */
     public static void start() {
-        //Ideally, add the main menu here
-        StartupMenu menu = new StartupMenu();
-//        ProjectView menu = new ProjectView(null);
-
-        root.getChildren().add(menu);
-
         GUI.primaryStage.show();
-
-        //must be done after show
-        menu.fixDivider();
+        screenController.goTo(ScreenController.STARTUP_MENU);
+//        screenController.goTo(ScreenController.OVERVIEW);
     }
 
     /**
@@ -175,26 +173,22 @@ public final class GUI {
 	/**
 	 * Makes a node draggable.
 	 * @param node the node
+     * @param lockX if specified, will lock the dragging to only the X position
 	 */
 	public static void makeDraggable(final Node node, boolean... lockX) {
 		final Delta dragDelta = new Delta();
 		
 		//stores the beginning position of the mouse
 		node.setOnMousePressed((MouseEvent mouseEvent) -> {
-            dragDelta.x = node.getLayoutX() - mouseEvent.getSceneX();
-            dragDelta.y = node.getLayoutY() - mouseEvent.getSceneY();
+            dragDelta.x = node.getTranslateX() - mouseEvent.getSceneX();
+            dragDelta.y = node.getTranslateY() - mouseEvent.getSceneY();
         });
 		
 		//actually move the node
         node.setOnMouseDragged((MouseEvent mouseEvent) ->{
-            node.setLayoutX(mouseEvent.getSceneX() + dragDelta.x);
+            node.setTranslateX(mouseEvent.getSceneX() + dragDelta.x);
             if(lockX.length < 1)
-                node.setLayoutY(mouseEvent.getSceneY() + dragDelta.y);
-        });
-
-        //what happens when you drag a node over this one
-        node.setOnDragOver((DragEvent event) -> {
-
+                node.setTranslateY(mouseEvent.getSceneY() + dragDelta.y);
         });
 
 		//activates the drag event to enable other nodes to detect drag over
@@ -215,17 +209,88 @@ public final class GUI {
 	}
 
     /**
-     * Switches the current screen to a specified screen.
-     * @param screen the screen to switch to
+     * Creates a fade effect for the specified Node.
+     * @param n the specified node
+     * @param in true if this is a fade in; false if this is a fade out.
+     * @param duration the duration of the fade in milliseconds (default duration is 500 if not provided). Only the
+     *                 first argument is used; the rest are ignored.
+     * @return the final fade effect
      */
-    public static void switchToScreen(Pane screen){
-//        makeDraggable(root);
+    public static Timeline fade(final Node n, boolean in, int... duration) {
+        n.setOpacity(in ? 0 : 1);
+        int dur = duration.length == 0 ? 500 : duration[0];
+
+        final Timeline timeline = new Timeline();
+        final KeyValue kv = new KeyValue(n.opacityProperty(), in ? 1 : 0, Interpolator.EASE_BOTH);
+
+        final KeyFrame kf = new KeyFrame(Duration.millis(dur), kv);
+        timeline.getKeyFrames().add(kf);
+
+        return timeline;
     }
 
     /**
-     * Exits the program.
+     * Creates a zoom-and-fade effect for a specified node.
+     * @param n the Node
+     * @param in true if fading in; false if fading out.
+     * @param duration the duration of the animation (defaults to 500 ms). An additional parameter can be provided to
+     *                 indicate the final value of the zoom (defaults to 95%).
+     * @return the generated animation
+     */
+    public static Timeline zoomFade(final Node n, boolean in, int... duration) {
+
+        int dur = duration.length == 0 ? 500 : duration[0];
+        double endScale = duration.length == 2 ? duration[1] : .95;
+
+        //set the starting attributes
+        n.setOpacity(in ? 0 : 1);
+        n.setScaleX(in ? endScale : 1);
+        n.setScaleY(in ? endScale : 1);
+
+        final Timeline timeline = new Timeline();
+        final KeyValue kv = new KeyValue(n.opacityProperty(), in ? 1 : 0, Interpolator.EASE_BOTH);
+        final KeyValue kv2 = new KeyValue(n.scaleXProperty(), in ? 1 : endScale, Interpolator.EASE_BOTH);
+        final KeyValue kv3 = new KeyValue(n.scaleYProperty(), in ? 1 : endScale, Interpolator.EASE_BOTH);
+
+        final KeyFrame kf = new KeyFrame(Duration.millis(dur), kv, kv2, kv3);
+        timeline.getKeyFrames().add(kf);
+
+        return timeline;
+    }
+
+    /**
+     * Creates an animation that changes the transform of a specified node to specified coordinates.
+     * @param n the node
+     * @param x the x coordinate
+     * @param y the y coordinate
+     * @param duration the duration of the animation (defaults to 200)
+     * @return the generated animation
+     */
+    public static Timeline moveTo(final Node n, double x, double y, int... duration) {
+        int dur = duration.length == 0 ? 200 : duration[0];
+
+        final Timeline timeline = new Timeline();
+        final KeyValue kv = new KeyValue(n.translateXProperty(), x, Interpolator.EASE_BOTH);
+        final KeyValue kv2 = new KeyValue(n.translateYProperty(), y, Interpolator.EASE_BOTH);
+        final KeyFrame kf = new KeyFrame(Duration.millis(dur), kv, kv2);
+        timeline.getKeyFrames().add(kf);
+        return timeline;
+    }
+
+    public static void minimize() {
+        primaryStage.setIconified(!primaryStage.isIconified());
+    }
+
+    public static void maximize() {
+        primaryStage.setMaximized(!primaryStage.isMaximized());
+    }
+
+    /**
+     * Exits the program, with a fancy fade-out animation.
      */
     public static void exit() {
-        primaryStage.close();
+        Timeline close = zoomFade(screenController, false, 200);
+        close.setOnFinished((ActionEvent done) -> primaryStage.close());
+        close.play();
     }
 }
