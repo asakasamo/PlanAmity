@@ -21,7 +21,7 @@ public class Entry {
 	private int percentComplete;
 
 	private Entry parent;
-	private List<Entry> children;
+	private List<Entry> subEntries;
 
 	private Participant assignedTo;
 	private Participant lastModifiedBy;
@@ -37,7 +37,7 @@ public class Entry {
 		description = "";
 
 		parent = null;
-		children = new ArrayList<>();
+		subEntries = new ArrayList<>();
 
 		this.start = start;
 		this.end = end;
@@ -57,7 +57,7 @@ public class Entry {
 	public Entry(String name, DateTime start, DateTime end, Entry parent){
 		this(name, start, end);
 		this.parent = parent;
-        if(parent != null) parent.children.add(this);
+        if(parent != null) parent.subEntries.add(this);
 	}
 
 	/**
@@ -68,7 +68,7 @@ public class Entry {
 	/**
 	 * @return This entry's child entries.
 	 */
-	public List<Entry> getChildren() { return children; }
+	public List<Entry> getSubEntries() { return subEntries; }
 
 	/**
 	 * @return This entry's name.
@@ -89,7 +89,7 @@ public class Entry {
 	 */
 	public Color getColor() {
 		if(assignedTo == null)
-			return Color.GRAY;
+			return Color.INDIANRED;
 		else
 			return assignedTo.getColor();
 	}
@@ -231,12 +231,32 @@ public class Entry {
 	}
 
     public String toString() {
-        return "[Name: " + name + "; start:" + start + "; end:" + end + ";]";
+        String tabs = "";
+        for(int i = numParents(); i >= 0; i--) tabs += "\t";
+
+        String s = tabs + "[Name: " + name + "; start:" + start + "; end:" + end + "; " + subEntries.size() + " SubEntries: {";
+        for(Entry e : subEntries) {
+            s += "\n" + tabs + e;
+        }
+
+        return s + "}";
+    }
+
+    public int numParents() {
+        if(parent == null)
+            return 0;
+
+        return 1 + parent.numParents();
     }
 
     public static void swap(Entry e1, Entry e2) {
         DateTime tmp = e2.getStart();
         e2.setStart(e1.getStart(), true);
         e1.setStart(tmp, true);
+    }
+
+    public void addSubEntry(Entry sub) {
+        sub.setParent(this);
+        subEntries.add(sub);
     }
 }

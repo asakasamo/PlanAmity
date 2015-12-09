@@ -1,8 +1,12 @@
 package application;
 
+import data.Project;
 import gui.GUI;
+import gui.screens.ScreenController;
 import javafx.application.Application;
 import javafx.stage.Stage;
+
+import java.util.List;
 
 /**
  * Main entry class for PlanAmity.
@@ -15,6 +19,9 @@ public class Main extends Application {
 
 	@Override
 	public void start(Stage primaryStage) {
+
+//        List l = Project.helper(10);
+//        System.out.println(l);
 
         instance = this;
         GUI.init(primaryStage);

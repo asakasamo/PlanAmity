@@ -1,13 +1,16 @@
 package gui.controls;
 
+import gui.GUI;
+import gui.screens.Screen;
+import javafx.scene.Cursor;
 import javafx.scene.Node;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 
 /**
@@ -19,84 +22,119 @@ import javafx.scene.shape.Rectangle;
  *
  */
 public class PlusButton extends StackPane {
-	private double width;
-	private double height;
+    public final double RADIUS = 31;
 
 	private Pane topHalf;
 	private Pane botHalf;
 	private Circle topHalfCircle;
 	private Circle botHalfCircle;
+    private VBox halvesContainer;
 
-    private VBox container;
+    private Circle circle;
+    private Label plus;
 
-	public PlusButton(){
-		width = height = 100;
-
-        this.setPrefWidth(width);
-        this.setPrefHeight(height);
-        this.setMaxWidth(width);
-        this.setMaxHeight(height);
-        this.setMinWidth(width);
-        this.setMinHeight(height);
+	public PlusButton(Screen screen){
+        GUI.setWidth(this, RADIUS*2);
+        GUI.setHeight(this, RADIUS*2);
 
 		topHalf = new Pane();
 		botHalf = new Pane();
-        container = new VBox();
+        halvesContainer = new VBox();
+        plus = new Label("+");
+
+        circle = new Circle(RADIUS, Color.LIGHTGRAY);
+        circle.setStroke(Color.BLACK);
+
+        plus.setStyle("-fx-font-size:35px");
 
 		//hide the overflow (for the half-circle effect)
-		topHalf.setClip(new Rectangle(width, height/2));
-		botHalf.setClip(new Rectangle(width, height/2));
+		topHalf.setClip(new Rectangle(RADIUS*2 +2, RADIUS +2));
+		botHalf.setClip(new Rectangle(RADIUS*2 +2, RADIUS +2));
 
 		//Color indicators for top and bottom halves
 //		topHalf.setStyle("-fx-background-color:pink");
 //		botHalf.setStyle("-fx-background-color:purple");
 
 		//initialize top half circle
-		topHalfCircle = new Circle(width/2, Color.GREEN);
-		topHalfCircle.setTranslateX(width/2);
-		topHalfCircle.setTranslateY(height/2);
+		topHalfCircle = new Circle(RADIUS, Color.TRANSPARENT);
+		topHalfCircle.setTranslateX(RADIUS +1);
+		topHalfCircle.setTranslateY(RADIUS +1);
 
 		topHalf.getChildren().add(topHalfCircle);
 
 		//initialize bot half circle
-		botHalfCircle = new Circle(width/2, Color.RED);
-		botHalfCircle.setTranslateX(width/2);
+		botHalfCircle = new Circle(RADIUS, Color.TRANSPARENT);
+		botHalfCircle.setTranslateX(RADIUS +1);
 
 		botHalf.getChildren().add(botHalfCircle);
 
 		//add both halves to the button
-		container.getChildren().addAll(topHalf, botHalf);
-        container.setMaxHeight(height);
-        container.setMaxWidth(width);
-        this.getChildren().add(container);
+		halvesContainer.getChildren().addAll(topHalf, botHalf);
+        halvesContainer.setMaxHeight(RADIUS*2);
+        halvesContainer.setMaxWidth(RADIUS*2);
 
-        this.setMinWidth(125);
-        this.setMinHeight(125);
+        Line ns = new Line(14,0,14,28);
+        Line ew = new Line(0,14,28,14);
+        ns.setFill(Color.BLACK);
+        ns.setStrokeWidth(2);
+        ew.setFill(Color.BLACK);
+        ew.setStrokeWidth(2);
 
-        hoverMe(topHalfCircle);
-        hoverMe(botHalfCircle);
-//        GUI.makeDraggable(this);
+        topHalfCircle.setCursor(Cursor.HAND);
+        botHalfCircle.setCursor(Cursor.HAND);
+        ns.setCursor(Cursor.HAND);
+        ew.setCursor(Cursor.HAND);
+        ns.setDisable(true);
+        ew.setDisable(true);
+        circle.setCursor(Cursor.HAND);
+
+        this.getChildren().addAll(circle, halvesContainer, ns, ew);
+
+        setButtonFunctions();
     }
 
 	/**
 	 * As of now, sets the hover events for the half-circles in the PlusButton.
-	 * @param n the Circle
 	 */
-	private void hoverMe(final Circle n){
-		Paint orig = n.getFill();
+	private void setButtonFunctions(){
 
-        n.setOnMouseEntered((MouseEvent event) -> n.setFill(Color.YELLOW));
+		topHalfCircle.setOnMouseMoved(MouseEvent -> {
+            turnOff(botHalfCircle);
+            turnOn(topHalfCircle);
+        });
 
-        n.setOnMouseExited((MouseEvent event) -> n.setFill(orig));
+        botHalfCircle.setOnMouseMoved(MouseEvent -> {
+            turnOff(topHalfCircle);
+            turnOn(botHalfCircle);
+        });
 
-//        n.setOnMouseClicked((MouseEvent event) -> GUI.screenController.goTo(ScreenController.STARTUP_MENU));
+        this.setOnMouseExited(MouseEvent -> {
+            turnOff(topHalfCircle);
+            turnOff(botHalfCircle);
+        });
 	}
+
+    public void combine() {
+        getChildren().remove(halvesContainer);
+        circle.setOnMouseMoved(MouseEvent -> turnOn(circle));
+        circle.setOnMouseExited(MouseEvent -> circle.setFill(Color.LIGHTGRAY));
+    }
+
+    private void turnOff(Circle c) {
+        c.setFill(Color.TRANSPARENT);
+        c.setStroke(Color.TRANSPARENT);
+    }
+
+    private void turnOn(Circle c) {
+        c.setFill(Color.YELLOW);
+        c.setStroke(Color.BLACK);
+    }
 
     public Node getTopHalf() {
         return topHalfCircle;
     }
-
     public Node getBotHalf() {
         return botHalfCircle;
     }
+    public Node getCircle() { return circle; }
 }

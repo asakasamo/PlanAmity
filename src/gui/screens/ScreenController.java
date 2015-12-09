@@ -2,9 +2,11 @@ package gui.screens;
 
 import data.Project;
 import gui.GUI;
-import gui.controls.EntryCell;
-import gui.controls.MenuBar;
-import javafx.scene.control.Menu;
+import gui.controls.ParticipantKey;
+import gui.controls.TitleBar;
+import gui.controls.ViewBar;
+import javafx.scene.input.KeyCode;
+import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.Pane;
 
 /**
@@ -16,14 +18,17 @@ import javafx.scene.layout.Pane;
  * - Time View
  * - List View
  * - Calendar View
+ *
+ * The ScreenController is designed to be used as the root node of the primary Scene.
  */
 public class ScreenController extends Pane {
 
     private Screen activeScreen;
-    private final MenuBar menuBar;
+    private final TitleBar titleBar;
+    private ParticipantKey participantKey;
+    private ViewBar viewBar;
 
-    public static Project activeProject;
-    public static EntryCell focus;
+    private Project activeProject;
 
     public static final int STARTUP_MENU = 0,
             OVERVIEW = 1,
@@ -32,16 +37,45 @@ public class ScreenController extends Pane {
             CALENDAR_VIEW = 4;
 
     public ScreenController() {
+        activeProject = Project.sampleProject();
+
+        titleBar = new TitleBar(this);
+        viewBar = new ViewBar(this);
+        participantKey = new ParticipantKey(this);
+
         activeScreen = null;
-        activeProject = new Project();
-        menuBar = new MenuBar(this);
+        setOnKeyPressed((KeyEvent key) -> {
+            if(key.getCode() == KeyCode.ESCAPE)
+                GUI.exit();
+        });
     }
 
+    public final TitleBar getTitleBar() {
+        return titleBar;
+    }
+
+    public final ParticipantKey getParticipantKey() {
+        return participantKey;
+    }
+
+    public final ViewBar getViewBar() {
+        return viewBar;
+    }
+
+    public final Project getActiveProject() {
+        return activeProject;
+    }
+
+    /**
+     * Switches the current screen to a specified screen, calling each screen's respective transition methods.
+     * @param screen The screen to go to. Potential values for this parameter are available as static final fields of
+     *               this class (STARTUP_MENU, OVERVIEW, etc.).
+     */
     public void goTo(int screen) {
-        Screen next = null;
+        Screen next;
         switch(screen){
             case STARTUP_MENU:  next = new StartupMenu(); break;
-            case OVERVIEW:      next = new Overview(); break;
+            case OVERVIEW:      next = new Overview(this); break;
             case TIME_VIEW:     next = new TimeView(); break;
             case LIST_VIEW:     next = new ListView(); break;
             case CALENDAR_VIEW: next = new CalendarView(); break;
@@ -57,17 +91,9 @@ public class ScreenController extends Pane {
         next.transitionIn();
         activeScreen = next;
 
-        getChildren().remove(menuBar);
-        if(screen != STARTUP_MENU) {
-            getChildren().add(menuBar);
-        }
     }
 
     private void initScreen(Screen screen) {
-        if(!(screen instanceof StartupMenu)) {
-            screen.setTranslateY(menuBar.getHeight());
-        }
-
         screen.scaleXProperty().bind(GUI.ZOOM);
         screen.scaleYProperty().bind(GUI.ZOOM);
         screen.minWidthProperty().bind(this.widthProperty());
@@ -80,15 +106,8 @@ public class ScreenController extends Pane {
      */
     public void setActiveProject(Project p) {
         activeProject = p;
+        viewBar = new ViewBar(this);
+        participantKey = new ParticipantKey(this);
     }
 
-    /**
-     * Sets the current focused EntryCell
-     * @param ec the EntryCell to focus
-     */
-    public void setFocus(EntryCell ec) {
-        if(focus != null) focus.getRoot().getStyleClass().remove("focused");
-        focus = ec;
-        if(focus != null) focus.getRoot().getStyleClass().add("focused");
-    }
 }

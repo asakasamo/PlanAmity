@@ -8,11 +8,15 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.beans.value.ObservableBooleanValue;
+import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.input.DragEvent;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.layout.Pane;
+import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.stage.Screen;
 import javafx.stage.Stage;
@@ -20,28 +24,11 @@ import javafx.stage.StageStyle;
 import javafx.util.Duration;
 
 /**
- * Class that provides general functions that will be used throughout the GUI.
+ * Main controller class that provides general functions that are used throughout the GUI.
  * @author Al-John
  *
  */
 public final class GUI {
-    //Resolution height (A numerator)
-    private static double resHeight;
-
-    //(diagonal) monitor size (B numerator)
-    private static double monitorSize;
-
-    //denominator for A in the scaling formula
-    private static final double A_DENOM = 720;
-
-    //denominator for B in the scaling formula
-    private static final double B_DENOM = 16;
-
-    //default app width
-    private static double GUI_width = 900;
-
-    //default app height
-    private static double GUI_height = 600;
 
     /**
      * This is the global scaling factor that is applied to all text and elements in the program (to ensure consistency
@@ -57,9 +44,27 @@ public final class GUI {
      */
     protected static double globalScale;
 
-    public static ScreenController screenController; //this is the root node!
+    //Resolution height ("A" numerator)
+    private static double resHeight;
+
+    //(diagonal) monitor size ("B" numerator)
+    private static double monitorSize;
+
+    //denominator for "A" in the scaling formula
+    private static final double A_DENOM = 720;
+
+    //denominator for "B" in the scaling formula
+    private static final double B_DENOM = 16;
+
+    //default app width
+    private static double GUI_width = 1280;
+
+    //default app height
+    private static double GUI_height = 720;
 
     public static Stage primaryStage;
+
+    public static ScreenController screenController; //this is the root node!
 
     private GUI() {}
 
@@ -115,7 +120,7 @@ public final class GUI {
         primaryStage.setMinHeight(GUI_height);
 
         primaryStage.setTitle("planAmity");
-        primaryStage.setResizable(true);
+        primaryStage.setResizable(true); //TODO: Make window resizeable, movable
     }
 
     /**
@@ -137,16 +142,8 @@ public final class GUI {
      */
     public static void start() {
         GUI.primaryStage.show();
-        screenController.goTo(ScreenController.STARTUP_MENU);
-//        screenController.goTo(ScreenController.OVERVIEW);
-    }
-
-    /**
-     * Returns a specified value adjusted to the app's global scale.
-     * @param d the specified value
-     */
-    public static double toScale(double d) {
-        return d * GUI.globalScale * GUI.ZOOM.get();
+//        screenController.goTo(ScreenController.STARTUP_MENU);
+        screenController.goTo(ScreenController.OVERVIEW);
     }
 
     /**
@@ -176,6 +173,9 @@ public final class GUI {
      * @param lockX if specified, will lock the dragging to only the X position
 	 */
 	public static void makeDraggable(final Node node, boolean... lockX) {
+        node.translateXProperty().unbind();
+        node.translateYProperty().unbind();
+
 		final Delta dragDelta = new Delta();
 		
 		//stores the beginning position of the mouse
@@ -195,7 +195,51 @@ public final class GUI {
 		node.setOnDragDetected((MouseEvent mouseEvent) -> node.startFullDrag());
 	}
 
-	/**
+    /**
+     * Sets the min, max, and preferred height of a specified Pane to a specified value.
+     * @param region the pane
+     * @param height the height value
+     */
+    public static void setHeight(final Region region, double height) {
+        region.setMinHeight(height);
+        region.setMaxHeight(height);
+        region.setPrefHeight(height);
+    }
+
+    /**
+     * Sets the min, max, and preferred width of a specified Pane to a specified value.
+     * @param region the pane
+     * @param width the width value
+     */
+    public static void setWidth(final Region region, double width) {
+        region.setMinWidth(width);
+        region.setMaxWidth(width);
+        region.setPrefWidth(width);
+    }
+
+    /**
+     * Binds the min, max, and preferred width of a specified region to a specified value.
+     * @param region the region
+     * @param bindTo the value to bind to
+     */
+    public static void bindWidth(final Region region, final ObservableValue bindTo) {
+        region.prefWidthProperty().bind(bindTo);
+        region.minWidthProperty().bind(bindTo);
+        region.maxWidthProperty().bind(bindTo);
+    }
+
+    /**
+     * Binds the min, max, and preferred height of a specified region to a specified value.
+     * @param region the region
+     * @param bindTo the value to bind to
+     */
+    public static void bindHeight(final Region region, final ObservableValue bindTo) {
+        region.prefHeightProperty().bind(bindTo);
+        region.minHeightProperty().bind(bindTo);
+        region.maxHeightProperty().bind(bindTo);
+    }
+
+    /**
 	 * Converts a Color to a String of its RGB code (e.g. for use in CSS).
 	 * For example, passing in Color.BLACK returns "#000000".
 	 * @param color the color
@@ -218,7 +262,7 @@ public final class GUI {
      */
     public static Timeline fade(final Node n, boolean in, int... duration) {
         n.setOpacity(in ? 0 : 1);
-        int dur = duration.length == 0 ? 500 : duration[0];
+        int dur = duration.length == 0 ? 150 : duration[0];
 
         final Timeline timeline = new Timeline();
         final KeyValue kv = new KeyValue(n.opacityProperty(), in ? 1 : 0, Interpolator.EASE_BOTH);
@@ -239,7 +283,7 @@ public final class GUI {
      */
     public static Timeline zoomFade(final Node n, boolean in, int... duration) {
 
-        int dur = duration.length == 0 ? 500 : duration[0];
+        int dur = duration.length == 0 ? 150 : duration[0];
         double endScale = duration.length == 2 ? duration[1] : .95;
 
         //set the starting attributes
@@ -267,7 +311,7 @@ public final class GUI {
      * @return the generated animation
      */
     public static Timeline moveTo(final Node n, double x, double y, int... duration) {
-        int dur = duration.length == 0 ? 200 : duration[0];
+        int dur = duration.length == 0 ? 150 : duration[0];
 
         final Timeline timeline = new Timeline();
         final KeyValue kv = new KeyValue(n.translateXProperty(), x, Interpolator.EASE_BOTH);

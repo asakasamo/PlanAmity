@@ -19,7 +19,7 @@ public class ParticipantKey extends Pane {
 
     private VBox container;
 
-    public ParticipantKey(Pane parent) {
+    public ParticipantKey(ScreenController screenController) {
 
         container = new VBox();
 
@@ -28,15 +28,15 @@ public class ParticipantKey extends Pane {
 
         container.setAlignment(Pos.CENTER);
         container.setPadding(new Insets(5));
-        if(ScreenController.activeProject != null) {
-            for (Participant p : ScreenController.activeProject.getParticipants()) {
+        if(screenController.getActiveProject() != null) {
+            for (Participant p : screenController.getActiveProject().getParticipants()) {
                 container.getChildren().add(new pLabel(p));
             }
         }
 
         this.getChildren().add(container);
         this.setTranslateX(50);
-        this.translateYProperty().bind(parent.heightProperty().subtract(50).subtract(this.heightProperty()));
+        this.translateYProperty().bind(screenController.heightProperty().subtract(50).subtract(this.heightProperty()));
         setStyle("-fx-background-color:black");
     }
 

@@ -15,7 +15,6 @@ public abstract class Screen extends Pane {
      * Designates the actions performed when transitioning into this screen.
      */
     public void transitionIn() {
-        populate();
         GUI.fade(this, true).play();
     }
 

@@ -5,8 +5,7 @@ import data.Project;
 import data.Participant;
 import gui.GUI;
 import gui.controls.PlusButton;
-import javafx.animation.Timeline;
-import javafx.event.ActionEvent;
+import gui.controls.startup.*;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -16,12 +15,10 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
-import sun.util.calendar.Gregorian;
 
 import java.io.File;
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.GregorianCalendar;
 import java.util.List;
 
 /**
@@ -66,16 +63,14 @@ public class StartupMenu extends Screen {
     //TODO: Figure out why it doesn't take up the whole screen... (imaginary margins)
     public StartupMenu() {
 
-//        this.scaleXProperty().bind(GUI.ZOOM);
-//        this.scaleYProperty().bind(GUI.ZOOM);
-
         getStyleClass().add("startup-split-pane");
+        getStyleClass().add("startupMenu");
 
         mainPane = new SplitPane();
         openProjectBtn = new Button("Open Project");
         recentProjectsBtn = new Button("Recent Projects");
         exitBtn = new Button("Exit");
-        plusButton = new PlusButton();
+        plusButton = new PlusButton(this);
 
         mainPane.minWidthProperty().bind(GUI.screenController.widthProperty());
         mainPane.minHeightProperty().bind(GUI.screenController.heightProperty());
@@ -97,22 +92,23 @@ public class StartupMenu extends Screen {
 
         //crates the left side of the menu
         leftSide = new VBox();
-        leftSide.setPadding(new Insets(50, 50, 50, 50));
+        leftSide.setPadding(new Insets(25));
         leftSide.getChildren().addAll(openProjectBtn,
                 recentProjectsBtn,
                 exitBtn);
         leftSide.setStyle("-fx-background-color:" + GUI.toRGBCode(Color.TEAL));
-        leftSide.setAlignment(Pos.TOP_RIGHT);
+        leftSide.setAlignment(Pos.TOP_LEFT);
         leftSide.setSpacing(7);
 
         //creates the right side of the menu
         rightSide = new VBox();
-        rightSide.setPadding(new Insets(50, 50, 50, 50));
+        rightSide.setStyle("-fx-background-color:" + GUI.toRGBCode(Color.SLATEGRAY));
+        rightSide.setPadding(new Insets(15));
+//        rightSide.getSubEntries().add(new AttributesPane());
         rightSide.getChildren().addAll(projectTitleTxt,
                 startDatePicker,
                 endDatePicker);
         rightSide.getChildren().addAll(participantList);
-        rightSide.setStyle("-fx-background-color:" + GUI.toRGBCode(Color.SLATEGRAY));
         rightSide.setAlignment(Pos.TOP_LEFT);
         rightSide.setSpacing(7);
         rightSide.getChildren().add(addBtn);
@@ -120,7 +116,7 @@ public class StartupMenu extends Screen {
         //adds the left and right sides
         mainPane.getItems().addAll(leftSide, rightSide);
 
-//        this.getChildren().add(new BubbleEntry(new Entry("hi", null), 100,200));
+//        this.getSubEntries().add(new BubbleEntry(new Entry("hi", null), 100,200));
 
         setButtonFunctions();
 
@@ -130,7 +126,11 @@ public class StartupMenu extends Screen {
         plusButton.translateXProperty().bind(leftSide.widthProperty().subtract(plusButton.widthProperty()));
         plusButton.setTranslateY(300);
         plusButton.setStyle("-fx-background-color:slategray");
-//        getChildren().add(overlay);
+        plusButton.combine();
+        GUI.setWidth(plusButton, 80);
+        GUI.setHeight(plusButton, 80);
+
+//        getSubEntries().add(overlay);
     }
 
     /**
@@ -149,40 +149,7 @@ public class StartupMenu extends Screen {
         };
 
         this.addEventFilter(MouseEvent.ANY, hack);
-        mainPane.setDividerPositions(.333);
-    }
-
-    /**
-     * A single line in the Participant list.
-     */
-    private class ParticipantForm extends HBox {
-        final ColorPicker colorPicker;
-        final TextField nameField;
-        final TextField initialsField;
-        final TextField roleField;
-
-        public ParticipantForm() {
-            colorPicker = new ColorPicker(); //TODO: Make a custom color picker (https://community.oracle.com/thread/2318310)
-            colorPicker.setPrefWidth(50);
-
-            nameField = new TextField();
-            nameField.setPromptText("Name");
-
-            initialsField = new TextField();
-            initialsField.setPromptText("Initials");
-            initialsField.setPrefWidth(50);
-
-            roleField = new TextField();
-            roleField.setPromptText("Role");
-
-            this.getChildren().addAll(colorPicker, nameField, initialsField, roleField);
-            this.setSpacing(7);
-        }
-
-        public boolean isFilled() {
-            return !(nameField.getText().isEmpty() || initialsField.getText().isEmpty()
-                    || roleField.getText().isEmpty());
-        }
+        mainPane.setDividerPositions(.25);
     }
 
     /**
@@ -256,8 +223,7 @@ public class StartupMenu extends Screen {
 
         recentProjectsBtn.setOnMouseClicked((MouseEvent me) -> {});
 
-        plusButton.setOnMouseClicked((MouseEvent me) -> newProjectAction());
-
+        plusButton.getCircle().setOnMouseClicked((MouseEvent me) -> newProjectAction());
 
         this.setOnScroll((ScrollEvent scroll) -> {
             this.setLayoutY(this.getLayoutY() + scroll.getDeltaY());

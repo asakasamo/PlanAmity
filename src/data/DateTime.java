@@ -30,6 +30,15 @@ public class DateTime extends GregorianCalendar {
     }
 
     /**
+     * Creates a DateTime of the given month, day, and year. The parameters are formatted as a normal person would input
+     * such a date.
+     * @param month the month
+     * @param day the day
+     * @param year the year
+     */
+    public DateTime(int month, int day, int year) { super(year, month -1, day); }
+
+    /**
 	 * Returns the amount of time between two specified DateTimes, in minutes.
 	 * @param t1 DateTime a
 	 * @param t2 DateTime b

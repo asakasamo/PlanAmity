@@ -1,37 +1,70 @@
 * {
     -fx-font-size: 1.2em;
+    -fx-font-family: Arial;
 }
 
-.button, .text-field, .color-picker {
-    -fx-background-color:cornsilk;
-}
-
-.button:hover, .text-field:hover, .color-picker:hover,
-.button:focused, .text-field:focused, .color-picker:focused {
+.button:hover, .text-field:hover, .color-picker:hover {
     -fx-background-color:yellow;
 }
+
+.button {
+    -fx-background-color:transparent;
+    -fx-padding: 1;
+    -fx-cursor:hand;
+}
+
+.button:hover {
+    -fx-font-weight: bold;
+}
+
+.text-field {
+    -fx-padding: 2;
+}
+
+/** Overview **/
+
+.overview .text-field {
+    -fx-background-color:transparent;
+}
+
+/** Startup Menu **/
+
+.startupMenu {
+    -fx-font: normal 20px Arial;
+}
+
+/* focused EntryCells */
 
 .focused {
     -fx-background-color:yellow;
 }
 
-.bubbleText{
-	-fx-fill: white;
-	-fx-font-weight:bold;
+.focused .bg {
+    -fx-fill: yellow;
 }
 
-.bubbleText:hover {
-	-fx-fill: green;
+/* BubbleEntry */
+
+.bubble *{
+	-fx-font: bold 14px Gadugi;
 }
 
-.bubble-bg{
-   -fx-arc-width:20;
-   -fx-arc-height:20;
+/* ListEntry */
+
+.listEntry *{
+    -fx-font: bold 12px Gadugi;
 }
 
-.bubble:hover {
-	-fx-background-color:yellow;
+.listEntry .text-field {
+    -fx-padding: 0;
+    -fx-background-color: yellow;
 }
+
+.listEntry .focused {
+    -fx-background-color: yellow;
+}
+
+/* Remove extra SplitPane nonsense */
 
 .split-pane {
     -fx-background-color: -fx-control-inner-background;
@@ -39,16 +72,30 @@
     -fx-padding: 0;
 }
 
-.startup-split-pane {
-    -fx-background-color:red;
-}
-
 .split-pane-divider {
     -fx-background-color: transparent;
     -fx-padding: 0;
 }
 
-.button.menuBar  {
+/* TitleBar */
+
+.titleBar * {
     -fx-font-size: 10px;
+}
+
+/* ViewBar */
+
+.viewBar {
+    -fx-font-size: 12px;
     -fx-font-weight: normal;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: black;
+}
+
+.viewBar .projectName {
+    -fx-font: normal 24px Arial;
+}
+
+.viewBar .dateRange {
+    -fx-font: normal 16px Arial;
 }
