@@ -1,10 +1,10 @@
+/**************************************************************
+    General (global) styles
+***************************************************************/
+
 * {
     -fx-font-size: 1.2em;
     -fx-font-family: Arial;
-}
-
-.button:hover, .text-field:hover, .color-picker:hover {
-    -fx-background-color:yellow;
 }
 
 .button {
@@ -13,43 +13,87 @@
     -fx-cursor:hand;
 }
 
-.button:hover {
-    -fx-font-weight: bold;
+*.button:hover, .text-field:hover, .color-picker:hover {
+    -fx-background-color:yellow;
 }
 
 .text-field {
     -fx-padding: 2;
 }
 
-/** Overview **/
+/**************************************************************
+    TitleBar
+***************************************************************/
+
+.titleBar * {
+    -fx-font-size: 10px;
+}
+
+.titleBar { -fx-background-color: #E1E1E1; }
+
+/**************************************************************
+    ViewBar
+***************************************************************/
+
+.viewBar {
+    -fx-font-size: 12px;
+    -fx-font-weight: normal;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: black;
+    -fx-background-color: #E1E1E1;
+}
+
+.viewBar .projectName {
+    -fx-font: normal 22px Arial;
+}
+
+.viewBar .dateRange {
+    -fx-font: normal 16px Arial;
+}
+
+.viewChooser {
+    -fx-font: normal 12px Arial;
+}
+
+.viewChooser .button {
+    -fx-padding: 0 0 0 2px;
+    -fx-margin: 0;
+    -fx-background-radius: 0;
+    -fx-background-color: #E1E1E1;
+    -fx-alignment: center-left;
+}
+
+.viewChooser .button:hover {
+    -fx-background-color: yellow;
+}
+
+/**************************************************************
+    Overview
+***************************************************************/
+
+.overview {
+    -fx-background-color: #FCFCFC;
+}
 
 .overview .text-field {
     -fx-background-color:transparent;
 }
 
-/** Startup Menu **/
-
-.startupMenu {
-    -fx-font: normal 20px Arial;
+/********* BubbleEntry *****************/
+.bubble .bg {
+    -fx-fill: #E1E1E1;
+    -fx-stroke: black;
 }
-
-/* focused EntryCells */
-
-.focused {
-    -fx-background-color:yellow;
-}
-
-.focused .bg {
-    -fx-fill: yellow;
-}
-
-/* BubbleEntry */
 
 .bubble *{
-	-fx-font: bold 14px Gadugi;
+    -fx-font: bold 14px Gadugi;
 }
 
-/* ListEntry */
+.bubble *:disabled {
+    -fx-opacity: 1;
+}
+
+/************* ListEntry *****************/
 
 .listEntry *{
     -fx-font: bold 12px Gadugi;
@@ -57,11 +101,37 @@
 
 .listEntry .text-field {
     -fx-padding: 0;
-    -fx-background-color: yellow;
+    -fx-margin: 0;
+    -fx-background-insets: 0;
+    -fx-background-radius: 0;
 }
 
-.listEntry .focused {
-    -fx-background-color: yellow;
+.listEntry *:disabled {
+    -fx-opacity: 1;
+}
+
+/*********** focused EntryCells ***********/
+
+.focused .bg {
+    -fx-fill: yellow;
+}
+
+.focused  * {
+     -fx-background-color: yellow;
+}
+
+/*********** Others ***************/
+
+.topTimeline, .entryArea {
+    -fx-background-color: #FCFCFC;
+}
+
+/**************************************************************
+    Startup Menu
+***************************************************************/
+
+.startupMenu {
+    -fx-font: normal 20px Arial;
 }
 
 /* Remove extra SplitPane nonsense */
@@ -75,27 +145,4 @@
 .split-pane-divider {
     -fx-background-color: transparent;
     -fx-padding: 0;
-}
-
-/* TitleBar */
-
-.titleBar * {
-    -fx-font-size: 10px;
-}
-
-/* ViewBar */
-
-.viewBar {
-    -fx-font-size: 12px;
-    -fx-font-weight: normal;
-    -fx-border-width: 0 0 1 0;
-    -fx-border-color: black;
-}
-
-.viewBar .projectName {
-    -fx-font: normal 24px Arial;
-}
-
-.viewBar .dateRange {
-    -fx-font: normal 16px Arial;
 }

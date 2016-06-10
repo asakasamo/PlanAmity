@@ -97,8 +97,17 @@ public class Project {
     public void addEntry(Entry entry) {
         addEntries(entry);
     }
-	
-	/**
+
+    /**
+     * Adds an entry to the project after a specified entry.
+     * @param toAdd the entry to add
+     * @param after the entry after which to add it
+     */
+    public void addEntryAfter(Entry toAdd, Entry after){
+        entries.add(entries.indexOf(after) +1, toAdd);
+    }
+
+    /**
 	 * Deletes an entry from the project.
 	 * @param e the entry to remove
 	 */
@@ -163,8 +172,6 @@ public class Project {
         return entries;
     }
 
-
-
     /**
      * Generates a sample project. The project includes:
      * - Starts today, ends February 20
@@ -174,10 +181,11 @@ public class Project {
      *          - with 0-6 sub-entries each, etc...
      * - all Entries are empty.
      *
+     * @param numEntries the number of entries
      * @return the sample project
      */
-    public static Project sampleProject() {
-        Project project = new Project("Sample Project", new DateTime(), new DateTime(2, 20, 2015));
+    public static Project randomProject(int numEntries) {
+        Project project = new Project("Sample Project", new DateTime(1,1,2016), new DateTime(1,31,2016));
         Color[] colors = {
                 Color.BLUE, Color.GREEN, Color.RED, Color.YELLOW, Color.PURPLE, Color.SKYBLUE, Color.PINK, Color.ORANGE
         };
@@ -185,7 +193,7 @@ public class Project {
         Random r = new Random();
 
         int par = 3 + r.nextInt(5);            //number of participants
-        List<List> ent = enTree(7);            //number of subentries (size of each sub-array)
+        List<List> ent = enTree(numEntries);   //number of subentries (size of each sub-array)
 
         List<Participant> participants = new ArrayList<>();
 
@@ -199,13 +207,19 @@ public class Project {
             project.addEntry(makeEntry(l, count++, "Entry" + count));
         }
 
+//        System.out.println(project + "\n\n ================================================ \n\n");
         return project;
     }
 
+    /**
+     * Random Project generator helper
+     * @param subs number of subEntries
+     * @return a List used to represent the Project hierarchy
+     */
     private static List<List> enTree(int subs){
-        if(subs < 4) return new ArrayList<>();
+        if(subs == 0) return new ArrayList<>();
 
-        int rand = new Random().nextInt(subs) + (subs == 7 ? 3 : 0);
+        int rand = subs; //new Random().nextInt(subs) + (subs == 7 ? 3 : 0);
         List<List> list = new ArrayList<>();
         while(rand-- >= 0){
             list.add(enTree(subs -1));
@@ -217,9 +231,118 @@ public class Project {
     private static Entry makeEntry (List<List> depth, int idx, String prefix){
         Entry entry = new Entry(prefix, new DateTime(), new DateTime());
         int count = 0;
-        for(List l : depth) {
-            entry.addSubEntry(makeEntry(l, count++, prefix + "-" + count));
+        for(List<List> l : depth) {
+            entry.addSubEntry(makeEntry(l, count++, prefix + "." + count));
         }
         return entry;
+    }
+
+    /**
+     * Adds a new Entry to the end of the project.
+     * @param name the name of the Entry
+     * @return the new Entry that was added
+     */
+    public Entry addNewEntry(String name) {
+        if(entries.isEmpty()) {
+            DateTime date = DateTime.getDateBetween(start, end);
+            Entry fresh = new Entry(name, date, date);
+            entries.add(fresh);
+            return fresh;
+        }
+        else
+            return addNewEntryAfter(entries.get(entries.size() -1), name);
+    }
+
+    /**
+     * Adds a new Entry with a specified name after a specified Entry.
+     * @param after the Entry after which to add the new Entry
+     * @param name the name of the new entry
+     */
+    public Entry addNewEntryAfter(Entry after, String name){
+        Entry fresh = new Entry(name);
+        this.addEntryAfter(fresh, after);
+
+        List<Entry> pointEntryGroup = this.getGroupOfSinglePointEntries(fresh);
+        int groupSize = pointEntryGroup.size();
+        int groupStartIdx = entries.indexOf(pointEntryGroup.get(0)) -1;
+        int groupEndIdx = groupStartIdx + groupSize + 1;
+
+        DateTime upper = groupStartIdx >= 0 ? entries.get(groupStartIdx).getEnd()           :   start;
+        DateTime lower = groupEndIdx < entries.size() ? entries.get(groupEndIdx).getStart() :   end;
+
+//        System.out.println(pointEntryGroup);
+//        System.out.println("\n======================\n");
+
+        List<DateTime> startDates = DateTime.getDatesDistributedEvenlyBetween(upper, lower, groupSize);
+
+        for(int i = 0; i < pointEntryGroup.size(); i++)
+            pointEntryGroup.get(i).setStart(startDates.get(i), true);
+
+        return fresh;
+    }
+
+    /**
+     * Returns the Entry at the specified index. The Project is always sorted by date.
+     * @param idx the index
+     * @return the Entry
+     */
+    public Entry getEntry(int idx){
+        if(idx < 0 || idx >= entries.size())
+            throw new IndexOutOfBoundsException("Index out of bounds.");
+
+        return entries.get(idx);
+    }
+
+    /**
+     * Returns a List representing a specified target Entry's corresponding "group" of single-point Entries (i.e. all of
+     * the single-point Entries adjacent to it).
+     *
+     * @param target the target Entry
+     * @return all adjacent single-point Entries
+     */
+    public List<Entry> getGroupOfSinglePointEntries(Entry target) {
+        List<Entry> adjacentPoints = new ArrayList<>();
+        int start = entries.indexOf(target) -1;
+        int endIdx = entries.indexOf(target) +1;
+
+        while(start >= 0 && entries.get(start).isSinglePoint()) {
+            adjacentPoints.add(0, entries.get(start));
+            start--;
+        }
+
+        if(target.isSinglePoint())
+            adjacentPoints.add(target);
+
+        while(endIdx < entries.size() && entries.get(endIdx).isSinglePoint()) {
+            adjacentPoints.add(entries.get(endIdx));
+            endIdx++;
+        }
+
+        return adjacentPoints;
+    }
+
+    /**
+     * Swaps two entries, as such:
+     * - The gap between the two entries is preserved.
+     *
+     *   123456789ABCDEFGHI       123456789ABCDEFGHI
+     *   --[-----]---[--]--  >>>  --[--]---[-----]--
+     *     X     Y   x  y           x  y   X     Y
+     *
+     * - The start of the 2nd entry becomes the start of the first entry
+     * - The start of the 1st entry becomes the end of the 2nd entry + the gap
+     *
+     * Easiest code I have ever written
+     * TODO: not static
+     *
+     * @param e1 the first Entry
+     * @param e2 the second Entry
+     */
+    public static void swapEntries(Entry e1, Entry e2) {
+        DateTime e1Start = e1.getStart();
+        DateTime e2End = e2.getEnd();
+
+        e2.setStart(e1Start, true);
+        e1.setEnd(e2End, true);
     }
 }

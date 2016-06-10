@@ -3,12 +3,11 @@ package gui.controls.overview;
 import data.DateTime;
 import data.Entry;
 import gui.GUI;
+import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.property.DoubleProperty;
 import javafx.geometry.Pos;
-import javafx.scene.*;
 import javafx.scene.Cursor;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
@@ -19,14 +18,11 @@ import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
- * The EntryBubble class is a GUI wrapper that represents a top level Entry in the interface. It
- * modifies itself visually based on the attributes of the Entry assigned to it.
+ * The EntryBubble class is the visual representation of a top level Entry in a Project.
  * 
  * @author Al-John
- *
  */
 public class BubbleEntry extends EntryCell {
 
@@ -34,19 +30,21 @@ public class BubbleEntry extends EntryCell {
     private final int PADS = 15;
 
     private Rectangle background;
-    private TextField nameInput;
-    private Label nameLabel;
+    private TextField nameText;
 
     private DoubleProperty width;
+    private boolean moving;
+    private boolean isNewFocus;
 
 	/**
-	 * Creates an EntryBubble and assigns an entry to it.
+	 * Creates a new EntryBubble, allowing user input for the creation of a new Entry.
      * @param entryBar the entryBar in which this BubbleEntry is contained
-     * @param width the width of this EntryBubble
+     * @param width the width property that this BubbleEntry will be bound to
 	 */
 	public BubbleEntry(EntryBar entryBar, final DoubleProperty width) {
         subEntries = new ArrayList<>();
-        nameLabel = new Label();
+        moving = false;
+        isNewFocus = false;
 
         this.entryBar = entryBar;
         GUI.setHeight(this, HEIGHT);
@@ -54,42 +52,37 @@ public class BubbleEntry extends EntryCell {
 
         this.getStyleClass().add("bubble");
 
-        background = new Rectangle(width.get(), HEIGHT, Color.LIGHTGRAY);
+        background = new Rectangle(width.get(), HEIGHT);
         background.widthProperty().bind(this.widthProperty());
-        background.setStroke(Color.BLACK);
-        background.setStrokeWidth(1);
-        background.setArcWidth(10);
-        background.setArcHeight(10);
+        background.setArcWidth(20);
+        background.setArcHeight(20);
         background.getStyleClass().add("bg");
+        background.setStroke(Color.BLACK);
 
-        nameInput = new TextField();
-        nameInput.setPromptText("Enter Entry name");
-        nameInput.setAlignment(Pos.CENTER);
-        initTextBounds(nameInput);
+        nameText = new TextField();
+        nameText.setPromptText("Enter Entry name");
+//        nameText.setAlignment(Pos.CENTER);
+        initTextBounds(nameText);
 
-        getChildren().addAll(background, nameInput);
+        getChildren().addAll(background, nameText);
 
         setButtonFunctions();
-        entry = new Entry("##BLANK##", new DateTime(), new DateTime());
+//        entry = new Entry("##BLANK##", new DateTime(), new DateTime());
 
-        Platform.runLater(() -> nameInput.requestFocus());
+        Platform.runLater(() -> nameText.requestFocus());
 	}
 
-    public BubbleEntry(Entry e, EntryBar bar) {
+    /**
+     * Creates a BubbleEntry for a specified Entry, skipping the user input phase of its creation.
+     * @param entry the Entry
+     * @param bar the containing EntryBar
+     */
+    public BubbleEntry(Entry entry, EntryBar bar) {
         this(bar, bar.bubbleWidth);
-        this.nameInput.setText(e.getName());
-        entry = e;
- //
-        System.out.println("GENERATED: " + this);
-        finish(true);
-    }
+        this.entry = entry;
 
-    public Entry getEntry() {
-        return entry;
-    }
-
-    public Node getRoot() {
-        return this;
+        nameText.setText(entry.getName());
+        nameText.setDisable(true);
     }
 
     private static final class DragContext {
@@ -115,45 +108,61 @@ public class BubbleEntry extends EntryCell {
         setOnMousePressed((MouseEvent mouseEvent) -> {
             drag.x = this.getTranslateX() - mouseEvent.getSceneX();
             drag.idx = entryBar.overIdx(mouseEvent.getSceneX());
+            isNewFocus = true;
 
-            if (mouseEvent.isControlDown()) entryBar.addFocus(this);
-            else entryBar.setFocus(this);
+            if(mouseEvent.isAltDown() && mouseEvent.isControlDown() && mouseEvent.isShiftDown())
+                entryBar.ctrlAltShiftClick();
+            else if(mouseEvent.isAltDown())
+                entryBar.altClick(this);
+            else if (mouseEvent.isControlDown())
+                entryBar.ctrlClick(this);
+            else if (mouseEvent.isShiftDown()) {
+                entryBar.shiftClick(this);
+            }
+            else {
+                isNewFocus = entryBar.setFocus(this);
+                if(isNewFocus)
+                    expand();
+            }
 
             setCursor(Cursor.CLOSED_HAND);
         });
 
         //actually moves the node
         this.setOnMouseDragged((MouseEvent mouseEvent) ->{
+            moving = true;
             this.setTranslateX(mouseEvent.getSceneX() + drag.x);
 
             int idx = entryBar.overIdx(mouseEvent.getSceneX());
-            entryBar.setFocus(this);
             entryBar.setMoving(this);
 
             if(idx != drag.idx) {
                 entryBar.swap(idx);
                 drag.idx = idx;
             }
-
         });
 
         this.setOnMouseReleased((MouseEvent event) -> {
-            entryBar.setMoving(null);
-            entryBar.fixPositions().play();
+            if(moving){
+                moving = false;
+                entryBar.stopMoving();
+                entryBar.fixPositions().play();
+//                expand();
+            }
+            else if(!isNewFocus){
+                toggle();
+            }
+
             setCursor(Cursor.HAND);
-            this.expand();
         });
 
         this.setOnKeyPressed((KeyEvent event) -> {
-            if(event.getCode() == KeyCode.TAB) {
-                event.consume();
-            }
             if(event.getCode() == KeyCode.ENTER){
-                if(!nameInput.getText().isEmpty())
-                    finish(true);
+                if(!nameText.getText().isEmpty())
+                    finish();
             }
             if(event.getCode() == KeyCode.ESCAPE){
-                finish(false);
+                die();
             }
         });
 	}
@@ -164,32 +173,39 @@ public class BubbleEntry extends EntryCell {
         GUI.bindWidth(text, this.widthProperty().subtract(PADS));
     }
 
-    private void finish(boolean keep) {
+    /**
+     * Finalizes the creation of an EntryBubble.
+     */
+    private void finish() {
+        nameText.setDisable(true);
+        entryBar.newEntryFinish();
+    }
 
-        if(keep) {
-            nameLabel.setText(nameInput.getText());
-            nameLabel.setAlignment(Pos.CENTER);
-            initTextBounds(nameLabel);
-
-            getChildren().set(getChildren().indexOf(nameInput), nameLabel);
-
-            if(entry == null)
-                entry = new Entry(nameInput.getText(), new DateTime(), new DateTime());
-        }
-
-        entryBar.newEntryFinish(this, keep);
+    @Override
+    public void die() {
+        Timeline disappear = GUI.fade(this, false);
+        disappear.setOnFinished(ActionEvent -> entryBar.delete(this));
+        disappear.play();
+        entryBar.newEntryCancel();
     }
 
     @Override
     public void expand() {
+        expanded = true;
         entryBar.getEntryArea().expand(this);
     }
 
     @Override
-    public void retract() { entryBar.getEntryArea().retract(this); }
+    public void retract() {
+        expanded = false;
+        entryBar.getEntryArea().retract(this);
+    }
 
     public String toString() {
         return "BubbleEntry :: " + super.toString();
     }
 
+    public String getEntryName() {
+        return nameText.getText();
+    }
 }

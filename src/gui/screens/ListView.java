@@ -1,10 +1,6 @@
 package gui.screens;
 
-import javafx.scene.Node;
 import javafx.scene.control.Label;
-import javafx.scene.layout.Pane;
-
-import java.util.List;
 
 /**
  * @author Al-John

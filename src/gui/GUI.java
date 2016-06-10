@@ -8,14 +8,13 @@ import javafx.animation.KeyValue;
 import javafx.animation.Timeline;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
-import javafx.beans.value.ObservableBooleanValue;
+import javafx.beans.value.ObservableDoubleValue;
+import javafx.beans.value.ObservableNumberValue;
 import javafx.beans.value.ObservableValue;
 import javafx.event.ActionEvent;
 import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.input.DragEvent;
 import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.Pane;
 import javafx.scene.layout.Region;
 import javafx.scene.paint.Color;
 import javafx.stage.Screen;
@@ -163,16 +162,15 @@ public final class GUI {
         }
     }
 
-    private static final class Delta {
-		double x, y;
-	}
-
 	/**
 	 * Makes a node draggable.
 	 * @param node the node
      * @param lockX if specified, will lock the dragging to only the X position
 	 */
 	public static void makeDraggable(final Node node, boolean... lockX) {
+
+        final class Delta { double x, y; }
+
         node.translateXProperty().unbind();
         node.translateYProperty().unbind();
 
@@ -222,7 +220,7 @@ public final class GUI {
      * @param region the region
      * @param bindTo the value to bind to
      */
-    public static void bindWidth(final Region region, final ObservableValue bindTo) {
+    public static void bindWidth(final Region region, final ObservableNumberValue bindTo) {
         region.prefWidthProperty().bind(bindTo);
         region.minWidthProperty().bind(bindTo);
         region.maxWidthProperty().bind(bindTo);
@@ -233,7 +231,7 @@ public final class GUI {
      * @param region the region
      * @param bindTo the value to bind to
      */
-    public static void bindHeight(final Region region, final ObservableValue bindTo) {
+    public static void bindHeight(final Region region, final ObservableNumberValue bindTo) {
         region.prefHeightProperty().bind(bindTo);
         region.minHeightProperty().bind(bindTo);
         region.maxHeightProperty().bind(bindTo);
@@ -321,10 +319,16 @@ public final class GUI {
         return timeline;
     }
 
+    /**
+     * Minimizes the window.
+     */
     public static void minimize() {
         primaryStage.setIconified(!primaryStage.isIconified());
     }
 
+    /**
+     * Maximizes the window.
+     */
     public static void maximize() {
         primaryStage.setMaximized(!primaryStage.isMaximized());
     }

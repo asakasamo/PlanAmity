@@ -3,10 +3,10 @@
  */
 package data;
 
+import javafx.scene.paint.Color;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import javafx.scene.paint.Color;
 
 /**
  * The Participant class represents a single participant of a project.

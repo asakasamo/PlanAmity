@@ -6,8 +6,6 @@ import gui.GUI;
 import javafx.application.Platform;
 import javafx.geometry.Pos;
 import javafx.scene.Cursor;
-import javafx.scene.Node;
-import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
@@ -16,71 +14,106 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 
 import java.util.ArrayList;
-import java.util.List;
 
 /**
- * Graphical representation of any sub-Entry.
+ * The ListEntry class is the graphical representation of any sub-Entry in a Project. (These are shown as a "list" in
+ * the EntryArea, hence the name "ListEntry".)
  */
 public class ListEntry extends EntryCell {
 
-    public static final double HEIGHT = 16.8;
+    public static final double HEIGHT = 17;
     private final double INDENT = 10;
 
-    private TextField nameInput;
-    private Label nameLabel;
+    private TextField nameText;
     private ImageView attachments;
+    private boolean popupOpen;
+    private boolean moving;
 
     private int indent;
 
-    public ListEntry(EntryBar entryBar, EntryCell parent, EntryCell... insertAfter){
+    /**
+     * Creates a new ListEntry, allowing user input for the creation of a new Entry.
+     * @param entryBar the EntryBar this ListEntry inhabits
+     * @param parent the parent EntryCell
+     */
+    public ListEntry(EntryBar entryBar, EntryCell parent){
+        moving = false;
         this.parent = parent;
         this.entryBar = entryBar;
         subEntries = new ArrayList<>();
-        nameLabel = new Label();
+        popupOpen = false;
         indent = parent instanceof ListEntry ? ((ListEntry) parent).indent + 1 : 0;
-
-        if(insertAfter.length == 0) parent.addSubEntry(this);
-        else parent.addSubEntry(this, insertAfter);
 
         this.getStyleClass().add("listEntry");
 
         GUI.setHeight(this, HEIGHT);
 //        this.setStyle("-fx-background-color:blue");
 
-        nameInput = new TextField();
-        nameInput.setPromptText("Entry Name");
+        nameText = new TextField();
+        nameText.setPromptText("Entry Name");
+        nameText.setAlignment(Pos.CENTER_LEFT);
+
         setTranslateX(indent * INDENT);
 
-        getChildren().add(nameInput);
-        Platform.runLater(() -> nameInput.requestFocus());
+//        Label l = new Label("Entry1.2");
+//        l.setStyle("-fx-background-color:red");
+//        getChildren().add(l);
+        getChildren().add(nameText);
+
+        focusMe();
         setButtonFunctions();
     }
 
-    public ListEntry(Entry e, EntryCell parent, EntryBar bar) {
+    /**
+     * Creates a ListEntry for a specified Entry, skipping the user input phase of its creation.
+     * @param entry the Entry
+     * @param parent the parent EntryCell
+     * @param bar the containing EntryBar
+     */
+    public ListEntry(Entry entry, EntryCell parent, EntryBar bar) {
         this(bar, parent);
-        nameInput.setText(e.getName());
-        entry = e;
+        this.entry = entry;
 
-//        System.out.println("GENERATED: " + this);
-        finish(true);
+        nameText.setText(entry.getName());
+        nameText.setDisable(true);
     }
 
     public void setButtonFunctions() {
 
+        this.addEventFilter(MouseEvent.ANY, (MouseEvent event) -> {
+            if(event.getButton() == MouseButton.SECONDARY) {
+                if(!popupOpen) {
+                    entryBar.openPopup(entry);
+                    popupOpen = true;
+                }
+                event.consume();
+            }
+        });
+
         this.setOnMouseClicked((MouseEvent event) -> {
-            if(event.getButton() == MouseButton.SECONDARY)
-                entryBar.openPopup(entry);
+
         });
 
         setOnMouseMoved(MouseEvent -> setCursor(Cursor.HAND));
 
         setOnMousePressed((MouseEvent event) -> {
             setCursor(Cursor.CLOSED_HAND);
-            entryBar.setFocus(this);
+            if(event.isAltDown())
+                expandAll();
+            else
+                entryBar.setFocus(this);
+
+//            this.setStyle("-fx-background-color:green");
         });
 
         setOnMouseReleased((MouseEvent event) -> {
             setCursor(Cursor.HAND);
+            if(!moving)
+                toggle();
+            else{
+                moving = false;
+                entryBar.setMoving(null);
+            }
         });
 
         this.setOnKeyPressed((KeyEvent event) -> {
@@ -88,32 +121,24 @@ public class ListEntry extends EntryCell {
                 event.consume();
             }
             if(event.getCode() == KeyCode.ENTER){
-                if(!nameInput.getText().isEmpty())
-                    finish(true);
+                if(!nameText.getText().isEmpty())
+                    finish();
             }
             if(event.getCode() == KeyCode.ESCAPE){
-                finish(false);
+                die();
             }
         });
 
     }
 
-    private void finish(boolean keep) {
-        if(keep) {
-            nameLabel.setText(nameInput.getText());
-            nameLabel.setAlignment(Pos.CENTER_LEFT);
-//            initTextBounds(nameLabel);
+    public void focusMe() {
+        Platform.runLater(() -> nameText.requestFocus());
+    }
 
-            getChildren().set(getChildren().indexOf(nameInput), nameLabel);
-
-            if(entry == null)
-                entry = new Entry(nameInput.getText(), new DateTime(), new DateTime());
-
-        } else {
-
-        }
-
-        entryBar.newEntryFinish(this, keep);
+    private void finish() {
+        nameText.setDisable(true);
+        entry = new Entry(nameText.getText(), new DateTime(), new DateTime());
+        entryBar.newEntryFinish();
     }
 
     public int getIndent() {
@@ -121,13 +146,26 @@ public class ListEntry extends EntryCell {
     }
 
     @Override
+    public void die() {
+        entryBar.delete(this);
+        entryBar.newEntryCancel();
+    }
+
+    @Override
     public void expand() {
         entryBar.getEntryArea().expand(this);
+        expanded = true;
+    }
+
+    public void expandAll() {
+        expand();
+        subEntries.forEach(ListEntry::expand);
     }
 
     @Override
     public void retract() {
         entryBar.getEntryArea().retract(this);
+        expanded = false;
     }
 
     @Override
@@ -137,4 +175,7 @@ public class ListEntry extends EntryCell {
         return s + "ListEntry :: " + super.toString();
     }
 
+    public String getEntryName() {
+        return nameText.getText();
+    }
 }

@@ -1,14 +1,27 @@
 package gui.controls.overview;
 
 
+import data.DateTime;
 import data.Entry;
 import gui.GUI;
 import javafx.animation.Timeline;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
+import javafx.event.Event;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.scene.control.Button;
+import javafx.scene.control.DatePicker;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+
+import javax.swing.event.DocumentEvent;
+import java.security.Timestamp;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Calendar;
+import java.util.Date;
 
 /**
  * Controller used to add a new Entry to the project.
@@ -18,16 +31,18 @@ import javafx.scene.layout.VBox;
 public class EntryPopup extends Pane {
 
     private Label name;
-    private Label startDate;
-    private Label endDate;
+    private DatePicker startDate;
+    private DatePicker endDate;
 
     private VBox container;
     private Button close;
+    private Entry entry;
 
     public EntryPopup(Entry entry) {
+        this.entry = entry;
         name = new Label(entry.getName());
-        startDate = new Label("Start date: " + entry.getStart().toString());
-        endDate = new Label("End date: " + entry.getEnd().toString());
+        startDate = new DatePicker(entry.getStart().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
+        endDate = new DatePicker(entry.getEnd().toInstant().atZone(ZoneId.systemDefault()).toLocalDate());
         container = new VBox(5);
         close = new Button("Close");
 
@@ -38,15 +53,24 @@ public class EntryPopup extends Pane {
         getChildren().add(container);
 
         close.setOnMouseClicked(MouseEvent -> die());
+
+        startDate.valueProperty().addListener((observableValue, oldValue, newValue) -> {
+            entry.setStart(new DateTime(newValue), false);
+        });
+
+        endDate.valueProperty().addListener((observableValue, oldValue, newValue) -> {
+            entry.setEnd(new DateTime(newValue), false);
+        });
     }
 
     public void spawn() {
-        GUI.zoomFade(this, true, 200).play();
+        GUI.zoomFade(this, true).play();
     }
 
     public void die() {
         Timeline death = GUI.zoomFade(this, false);
         death.setOnFinished(ActionEvent -> ((Pane)getParent()).getChildren().remove(this));
+
         death.play();
     }
 

@@ -2,13 +2,16 @@ package gui.controls.overview;
 
 import data.Entry;
 import data.ObsList;
+import data.Project;
 import gui.GUI;
 import gui.screens.Overview;
 import javafx.animation.Timeline;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.scene.layout.Pane;
+import javafx.scene.shape.Line;
 
+import javax.swing.*;
 import javax.swing.event.ListDataEvent;
 import javax.swing.event.ListDataListener;
 import java.util.ArrayList;
@@ -21,38 +24,42 @@ import java.util.stream.Collectors;
 public class EntryBar extends Pane {
 
     public static final double HEIGHT = 59;
-    private final double PAD_L = 24;
     private final double BUBBLE_GAP = 15;
+    private final double PAD_L = 24;
     private final double PAD_R = BUBBLE_GAP;
 
     private boolean startup;
 
     DoubleProperty bubbleWidth;
     private final double Y_POS = 0;
-    private EntryCell moving;
+    private BubbleEntry moving;
 
     private ObsList<BubbleEntry> bubbles;
     private List<EntryCell> focus;
     private EntryCell prevFocus;
     private Overview overview;
 
+    private List<Line> branches;
+
     private EntryArea entryArea;
 
     public EntryBar(Overview overview) {
+        this.overview = overview;
+
         prevFocus = null;
         focus = new ArrayList<>();
         bubbles = new ObsList<>();
-        this.overview = overview;
         entryArea = new EntryArea(this);
-        startup = false;
+        startup = true;
+        branches = new ArrayList<>();
 
         GUI.bindWidth(this, overview.widthProperty().subtract(PAD_R));
         GUI.setHeight(this, HEIGHT);
 
+        bubbleWidth = new SimpleDoubleProperty(prefWidthProperty().get());
+
         this.setTranslateX(PAD_L);
 //        this.setStyle("-fx-background-color:orange");
-
-        bubbleWidth = new SimpleDoubleProperty(widthProperty().get());
 
         initListeners();
     }
@@ -83,8 +90,22 @@ public class EntryBar extends Pane {
         });
     }
 
-    public void enableStartup () { startup = true; }
-    public void finishStartup () { startup = false;}
+    /**
+     * Begins the startup process.
+     */
+    public void beginStartup() { startup = true; }
+
+    /**
+     * Finalizes startup.
+     */
+    public void endStartup() {
+        if(bubbles.size() > 0)
+            setFocus(bubbles.get(0));
+
+        generateBranches();
+
+        startup = false;
+    }
 
     private void fixBubbleWidth() {
         bubbleWidth.set(widthProperty().get() / bubbles.size() - BUBBLE_GAP);
@@ -104,22 +125,31 @@ public class EntryBar extends Pane {
      *          - Else
      *              - make the start date of the new entry exactly in between the focus and the next entry
      *
-     * @param level true if the new Entry is at the same level as the current focused entry; false if the new entry is a
-     *              child.
+     * @param level true if the new Entry and the current focused entry are level; false if the new entry is a child.
      */
     public void newEntryStart(boolean level) {
-        EntryCell focus = this.focus.isEmpty() ? null : this.focus.get(this.focus.size() -1);
+        EntryCell focus = getCurrentFocus();
+        prevFocus = focus;
 
-        //is first entry OR a new BubbleEntry
-        if(focus == null || (level && focus.getParentCell() == null)) {
-            //spawn entry bubble
+        //is a new BubbleEntry or the very first Entry (i.e. a BubbleEntry)
+        if( creatingNewBubble(level) ) {
             BubbleEntry fresh = new BubbleEntry(this, bubbleWidth);
+            int newIdx = focus == null ? 0 : bubbles.indexOf((BubbleEntry)focus) + 1;
+            bubbles.add(newIdx, fresh);
+
+            //branches are wrong now
+            removeAllBranches();
+
+            //Add node
             fresh.setOpacity(0);
             getChildren().add(fresh);
-            bubbles.add(fresh);
 
+            //spawn animation for bubble
             Timeline t = fixPositions();
-            t.setOnFinished(ActionEvent -> GUI.fade(fresh, true).play());
+            t.setOnFinished(ActionEvent -> {
+                GUI.fade(fresh, true).play();
+                generateBranches();
+            });
             t.play();
 
 //            overview.exclusiveFocus(fresh);
@@ -127,73 +157,144 @@ public class EntryBar extends Pane {
         }
         else { //adding a ListEntry
             EntryCell parent = level ? focus.getParentCell() : focus;
-            ListEntry fresh;
+            ListEntry fresh = new ListEntry(this, parent);
 
-            //if level, INSERT child into parent subEntry list
-            if(level) fresh = new ListEntry(this, parent, focus);
-            //else, ADD child to subEntry list
-            else fresh = new ListEntry(this, parent);
+            //if level, insert the subEntry into the parent AFTER the focus
+            if(level) parent.addSubEntry(fresh, (ListEntry)focus);
+            //else, add the subEntry to the end of the parent
+            else parent.addSubEntry(fresh);
 
-            entryArea.invalidate(parent);
-            parent.expand();
+            //update EntryArea
+            entryArea.update(fresh);
 
-//            overview.exclusiveFocus(fresh);
             setFocus(fresh);
         }
     }
 
-    public void newEntryFinish(final BubbleEntry fresh, boolean keep) {
-        if(keep) {
-            setFocus(fresh);
-        } else{
-            Timeline disappear = GUI.fade(fresh, false);
-            disappear.setOnFinished(ActionEvent -> {
-                bubbles.remove(fresh);
-                getChildren().remove(fresh);
-                fixPositions().play();
-            });
-            disappear.play();
-//            setFocus(focus);
-        }
-
-        overview.relaxFocus();
+    /**
+     * Returns true if the current focus is null (there are no Entries), or the level is the same as a BubbleEntry.
+     * @param level true if the new Entry and the current focused entry are level; false if the new entry is a child
+     * @return true if a new Bubble is being created (determined by the current state of things)
+     */
+    private boolean creatingNewBubble(boolean level) {
+        return focus.isEmpty() || (level && getCurrentFocus() instanceof BubbleEntry);
     }
 
-    public void newEntryFinish(final ListEntry fresh, boolean keep){
-        if(keep) {
-            setFocus(fresh);
-        } else{
-            fresh.getParentCell().getSubEntries().remove(fresh);
-            entryArea.delete(fresh);
-
-            entryArea.invalidate(prevFocus);
-            setFocus(prevFocus);
-        }
-
-        overview.relaxFocus();
+    /**
+     * Returns the current selected EntryCell, or none if there are no EntryCells available. If there are multiple
+     * selected, returns the last one that was selected.
+     * @return the current selected EntryCell, or null if there are none available.
+     */
+    public EntryCell getCurrentFocus() {
+        return this.focus.isEmpty() ? null : this.focus.get(this.focus.size() -1);
     }
 
-    public void setFocus(EntryCell cell){
-        if(startup) {
-            entryArea.invalidate(cell);
-            entryArea.expand(cell);
-            return;
+    /**
+     * The final stages of creating a new Entry.
+     */
+    public void newEntryFinish() {
+
+        if(prevFocus == null) {
+            getCurrentFocus().setEntry(overview.getScreenController().getActiveProject().addNewEntry(
+                    getCurrentFocus().getEntryName()));
+        }
+        else {
+            getCurrentFocus().setEntry(overview.getScreenController().getActiveProject().addNewEntryAfter(
+                    prevFocus.getEntry(), getCurrentFocus().getEntryName()));
         }
 
-        for(EntryCell e : focus) {                                          //for all currently focused elements,
-            e.loseFocus();                                                  //remove their focus (visually)
-            if(e instanceof BubbleEntry && cell instanceof BubbleEntry)     //if going from bubble to bubble,
-                e.retract();                                                //retract the previous bubble
+        getCurrentFocus().expand();
+        generateBranches();
+    }
 
-            if(prevFocus != e)
-                prevFocus = e;
-        }
+    /**
+     * Cancels the creation of a new Entry.
+     */
+    public void newEntryCancel() {
+        setFocus(prevFocus);
+    }
 
-        focus.clear();          //remove all focused elements
-        focus.add(cell);        //add the new focus
+    /**
+     * Deletes a BubbleEntry from the Project.
+     * @param bubble the bubble to delete
+     */
+    public void delete(BubbleEntry bubble) {
+        bubbles.remove(bubble);
+        getChildren().remove(bubble);
 
-        cell.gainFocus();       //gain focus (visually)
-        toggle(cell);           //toggle the expanded status of the new focus
+        Timeline fix = fixPositions();
+        fix.setOnFinished(ActionEvent -> generateBranches());
+        fix.play();
+    }
+
+    /**
+     * Deletes a ListEntry from the Project.
+     * @param entry
+     */
+    public void delete(ListEntry entry) {
+        entryArea.delete(entry);
+    }
+
+    /**
+     * Handles setting a single EntryCell as the current focus of the application.
+     * @param toFocus the EntryCell to focus
+     * @return true if the EntryCell is already focused; false otherwise.
+     */
+    public boolean setFocus(EntryCell toFocus){
+//        System.out.println(toFocus);
+
+        boolean alreadyFocused = alreadyFocused(toFocus);
+
+        //if it's multiple bubbles selected, unfocus all of them
+        if(focus.size() > 1)
+            focus.forEach(EntryCell::retract);
+
+        //all current focus lose focus
+        focus.forEach(EntryCell::loseFocus);
+        focus.clear();
+
+        focus.add(toFocus);
+        toFocus.gainFocus();
+
+        return !alreadyFocused;
+    }
+
+    /**
+     * Returns true if the specified EntryCell is currently focused; false otherwise.
+     * @param cell the cell to check
+     * @return true if the cell is focused; false otherwise.
+     */
+    public boolean alreadyFocused(EntryCell cell){
+        return focus.size() == 1 && focus.get(0) == cell;
+    }
+
+    public boolean setFocus(ListEntry toFocus){
+        boolean alreadyFocused = alreadyFocused(toFocus);
+
+        focus.forEach(EntryCell::loseFocus);
+        focus.clear();
+
+        focus.add(toFocus);
+        toFocus.gainFocus();
+
+        return !alreadyFocused;
+    }
+
+    public boolean setFocus(BubbleEntry toFocus){
+        boolean alreadyFocused = alreadyFocused(toFocus);
+
+        if(focus.size() > 1)
+            focus.forEach(EntryCell::retract);
+
+        //all current focus lose focus
+        focus.forEach(EntryCell::loseFocus);
+
+        focus.clear();
+        focus.add(toFocus);
+
+        toFocus.gainFocus();
+
+        return !alreadyFocused;
     }
 
     public void addFocus(BubbleEntry bubble){
@@ -209,9 +310,79 @@ public class EntryBar extends Pane {
         focus.add(bubble);
         bubble.gainFocus();
 
-        //convert to a list of bubbles
+        displayFocusedBubbles();
+    }
+
+    public void removeFocus(BubbleEntry bubble) {
+        bubble.loseFocus();
+        focus.remove(bubble);
+        displayFocusedBubbles();
+    }
+
+    private void displayFocusedBubbles() {
         List<BubbleEntry> bubbles = focus.stream().map(cell -> (BubbleEntry) cell).collect(Collectors.toList());
         entryArea.expand(bubbles);
+    }
+
+    public void focusAllBetween(int start, int end) {
+        int i = start < end ? start : end;
+        int j = i == start ? end : start;
+
+        for(; i <= j; i++){
+            addFocus(bubbles.get(i));
+        }
+    }
+
+    public void ctrlClick(BubbleEntry bubble) {
+        if(focus.contains(bubble))
+            removeFocus(bubble);
+        else
+            addFocus(bubble);
+    }
+
+    public void shiftClick(BubbleEntry bubble){
+        focusAllBetween(bubbles.indexOf((BubbleEntry)focus.get(focus.size() -1)), bubbles.indexOf(bubble));
+    }
+
+    public void altClick(EntryCell entry){
+        setFocus(entry);
+        entryArea.expandAll(entry);
+    }
+
+    public void ctrlAltShiftClick() {
+        focusAllBetween(0, bubbles.size() -1);
+        for(EntryCell cell : focus)
+            entryArea.expandAll(cell);
+    }
+
+    public void generateBranches() {
+        removeAllBranches();
+
+        for(int i = 0; i < bubbles.size() -1; i++){
+            double sx = (i+1) * bubbleWidth.get() + (i*BUBBLE_GAP);
+            double sy = BubbleEntry.HEIGHT / 2d + .5;
+            double ex = sx + BUBBLE_GAP;
+            double ey = sy;
+
+            Line branch = new Line(sx, sy, ex, ey);
+
+            branch.getStrokeDashArray().addAll(2d, 3d, 4d, 3d);
+            getChildren().add(branch);
+            branches.add(branch);
+        }
+    }
+
+    private void removeBranches(BubbleEntry bubble) {
+        int idx = bubbles.indexOf(bubble);
+        if(idx -1 < branches.size() && idx -1 >= 0)
+            getChildren().remove(branches.get(idx -1));
+        if(idx < branches.size() && idx >= 0)
+            getChildren().remove(branches.get(idx));
+    }
+
+    private void removeAllBranches() {
+        getChildren().removeAll(branches);
+        branches.clear();
     }
 
     public void toggle(EntryCell entry) {
@@ -245,44 +416,59 @@ public class EntryBar extends Pane {
 
         if(moving != bubbles.get(to)){
             BubbleEntry target = bubbles.get(to);
-            int from = bubbles.indexOf((BubbleEntry)moving);
+            int from = bubbles.indexOf(moving);
 
-            bubbles.set(to, (BubbleEntry)moving);
+            bubbles.set(to, moving);
             bubbles.set(from, target);
 
-            moving.retract();
-            fixPositions().play();
+            Project.swapEntries(target.getEntry(), moving.getEntry());
 
-//            System.out.println(from + " " + bubbles.get(from).getEntry().getName());
-//            System.out.println(to + " " + bubbles.get(to).getEntry().getName());
+            Timeline fix = fixPositions();
+
+            fix.setOnFinished(ActionEvent -> {
+                generateBranches();
+                removeBranches(moving);
+            });
+
+            fix.play();
         }
     }
 
-    public void setMoving(EntryCell cell) {
-        moving = cell;
+    public void setMoving(BubbleEntry bubble) {
+        removeBranches(bubble);
+        moving = bubble;
     }
 
+    public void stopMoving() {
+        moving = null;
+        generateBranches();
+    }
+
+    /**
+     * Generates an animation that "fixes" the positions of all of the bubbles.
+     * @return an animation that fixes the positions of all of the bubbles
+     */
     public Timeline fixPositions() {
         Timeline timeline = new Timeline();
-        for(int i = 0; i < bubbles.size(); i++) {
-            if(bubbles.get(i) != moving) timeline.getKeyFrames().addAll(
-                    GUI.moveTo(bubbles.get(i), getProperX(i), Y_POS, 200).getKeyFrames());
-        }
 
-        System.out.println("Job done!");
+        for(int i = 0; i < bubbles.size(); i++) {
+            if(bubbles.get(i) != moving) {
+                timeline.getKeyFrames().addAll(GUI.moveTo(bubbles.get(i), getProperX(i), Y_POS).getKeyFrames());
+            }
+        }
 
         return timeline;
     }
 
     /**
-     * Returns the "proper" x position of the given index, in the context of the EntryBar. Used for positioning
-     * EntryBubbles.
+     * Returns the "proper" x position of a specified index (i.e. the index of the BubbleEntry). Used for positioning
+     * BubbleEntries.
      *
-     * @param idx the index (i.e. of the Bubble in question)
+     * @param idx the index of the Bubble
      * @return the proper position
      */
     public double getProperX(int idx) {
-        return idx * cellWidth();
+        return (int)(idx * cellWidth());
     }
 
     public EntryArea getEntryArea() {
@@ -297,24 +483,22 @@ public class EntryBar extends Pane {
         popup.spawn();
     }
 
+    /**
+     * Returns the proper X position of a given BubbleEntry.
+     * @param bubble the BubbleEntry
+     * @return the proper X position
+     */
     public double getProperX(BubbleEntry bubble){
         return getProperX(bubbles.indexOf(bubble));
     }
 
-    public void loadEntry(EntryCell cell) {
-//        System.out.println(cell);
-
-        if(cell instanceof BubbleEntry) {
-            getChildren().add(cell);
-            newEntryFinish((BubbleEntry) cell, true);
-            bubbles.add((BubbleEntry)cell);
-        }
-        else if (cell instanceof ListEntry) {
-//            entryArea.invalidate(cell.getParentCell());
-//            cell.getParentCell().expand();
-//            newEntryFinish((ListEntry) cell, true);
-        }
-
+    /**
+     * Loads a BubbleEntry into the EntryBar.
+     * @param bubble the BubbleEntry
+     */
+    public void loadBubbleEntry(BubbleEntry bubble) {
+        getChildren().add(bubble);
+        bubbles.add(bubble);
     }
 
     public int indexOf(BubbleEntry bubble) {

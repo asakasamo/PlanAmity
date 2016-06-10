@@ -3,7 +3,6 @@ package gui.controls.overview;
 import gui.GUI;
 import javafx.scene.control.Label;
 import javafx.scene.layout.Pane;
-import javafx.scene.paint.Color;
 
 /**
  * @author Al-John
@@ -19,7 +18,8 @@ public class TimelineBar extends Pane {
 
         label = new Label("(Timeline bar)");
         this.prefWidthProperty().bind(parent.widthProperty());
-        this.setStyle("-fx-background-color:cadetblue");
+
+        this.getStyleClass().add("topTimeline");
 
         this.getChildren().add(label);
     }

@@ -1,18 +1,21 @@
 package gui.screens;
 
 import data.DateTime;
-import data.Project;
 import data.Participant;
+import data.Project;
 import gui.GUI;
-import gui.controls.PlusButton;
-import gui.controls.startup.*;
+import gui.controls.general.PlusButton;
+import gui.controls.startup.ParticipantForm;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.control.*;
+import javafx.scene.control.Button;
+import javafx.scene.control.DatePicker;
+import javafx.scene.control.SplitPane;
+import javafx.scene.control.TextField;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.input.ScrollEvent;
-import javafx.scene.layout.*;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.stage.FileChooser;
 

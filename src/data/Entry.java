@@ -1,9 +1,9 @@
 package data;
 
+import javafx.scene.paint.Color;
+
 import java.util.ArrayList;
 import java.util.List;
-
-import javafx.scene.paint.Color;
 
 /**
  * The Entry class is a data structure representing a single entry in a project. Every project
@@ -17,7 +17,6 @@ public class Entry {
 
 	private DateTime start;
 	private DateTime end;
-	private int duration;
 	private int percentComplete;
 
 	private Entry parent;
@@ -41,7 +40,6 @@ public class Entry {
 
 		this.start = start;
 		this.end = end;
-		duration = 0;
 		percentComplete = 0;
 
 		assignedTo = null;
@@ -59,6 +57,10 @@ public class Entry {
 		this.parent = parent;
         if(parent != null) parent.subEntries.add(this);
 	}
+
+    public Entry(String name){
+        this(name, new DateTime(), new DateTime());
+    }
 
 	/**
 	 * @return This entry's parent entry, or null if it is a top level entry.
@@ -102,39 +104,55 @@ public class Entry {
 
 	/**
 	 * 
-	 * @return the duration of this entry, in hours.
+	 * @return the duration of this entry, in minutes.
 	 */
-	public long getDuration() { return duration; }
+	public int getDuration() { return DateTime.minutesBetween(start, end); }
 
 	/**
 	 * Sets the duration of this entry, then modifies its end date accordingly.
-	 * @param dur the duration of this entry, in hours
+	 * @param mins the duration of this entry, in minutes
 	 */
-	public void setDuration(int dur){
-		this.duration = dur;
-		end = start.getLaterDateTime(dur);
+	public void setDurationInMins(int mins){
+		end = start.getLaterDateTime(mins);
 	}
+
+    /**
+     * Sets the duration of this entry, then modifies its end date accordingly.
+     * @param hours the new duration of this entry, in hours
+     */
+	public void setDurationInHours(int hours){
+		setDurationInMins(hours * 60);
+	}
+
+    /**
+     * Sets the duration of this entry, then modifies its end date accordingly.
+     * @param days the new duration of this entry, in days
+     */
+    public void setDurationInDays(int days){
+        setDurationInHours(days * 24);
+    }
 
 	/**
 	 * Sets the start DateTime of this entry. 
 	 * 	If keepDur is true, then modifies the end DateTime accordingly.
-	 * 	If keepDur is false, then modifies the duration accordingly.
+	 * 	If keepDur is false, then does not modify the end DateTime.
 	 * @param start the new start DateTime
 	 * @param keepDur true if the duration is to be preserved; false otherwise
 	 */
 	public void setStart(DateTime start, boolean keepDur){
+		int duration = getDuration();
 		this.start = start;
 		if(keepDur)	end = start.getLaterDateTime(duration);
-		else this.duration = DateTime.minutesBetween(start, end);
 	}
 
 	/**
 	 * Sets the end DateTime of this entry, then modifies its duration accordingly.
 	 * @param end the new end DateTime
 	 */
-	public void setEnd(DateTime end){
+	public void setEnd(DateTime end, boolean keepDur){
+        int duration = getDuration();
 		this.end = end;
-		this.duration = DateTime.minutesBetween(start, end);
+        if(keepDur) start = end.getEarlierDateTime(duration);
 	}
 
 	/**
@@ -242,6 +260,10 @@ public class Entry {
         return s + "}";
     }
 
+    /**
+     * Returns the number of parents this Entry has (i.e. its depth).
+     * @return the number of parents this Entry has (i.e. its depth)
+     */
     public int numParents() {
         if(parent == null)
             return 0;
@@ -249,14 +271,20 @@ public class Entry {
         return 1 + parent.numParents();
     }
 
-    public static void swap(Entry e1, Entry e2) {
-        DateTime tmp = e2.getStart();
-        e2.setStart(e1.getStart(), true);
-        e1.setStart(tmp, true);
-    }
-
+    /**
+     * Adds a subEntry to this Entry
+     * @param sub the subEntry
+     */
     public void addSubEntry(Entry sub) {
         sub.setParent(this);
         subEntries.add(sub);
+    }
+
+    /**
+     * Returns true if the Entry is a single point in time; false otherwise (i.e. its duration is not 0).
+     * @return true if the Entry is a single point in time (duration = 0); false otherwise
+     */
+    public boolean isSinglePoint() {
+        return getDuration() == 0;
     }
 }

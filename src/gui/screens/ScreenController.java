@@ -2,11 +2,9 @@ package gui.screens;
 
 import data.Project;
 import gui.GUI;
-import gui.controls.ParticipantKey;
-import gui.controls.TitleBar;
-import gui.controls.ViewBar;
-import javafx.scene.input.KeyCode;
-import javafx.scene.input.KeyEvent;
+import gui.controls.general.ParticipantKey;
+import gui.controls.general.TitleBar;
+import gui.controls.general.ViewBar;
 import javafx.scene.layout.Pane;
 
 /**
@@ -28,6 +26,8 @@ public class ScreenController extends Pane {
     private ParticipantKey participantKey;
     private ViewBar viewBar;
 
+    private int screenYOffset;
+
     private Project activeProject;
 
     public static final int STARTUP_MENU = 0,
@@ -37,17 +37,18 @@ public class ScreenController extends Pane {
             CALENDAR_VIEW = 4;
 
     public ScreenController() {
-        activeProject = Project.sampleProject();
+        activeProject = Project.randomProject(5);
 
         titleBar = new TitleBar(this);
         viewBar = new ViewBar(this);
         participantKey = new ParticipantKey(this);
 
+        screenYOffset = 0;
+        addElement(titleBar, 0);
+        addElement(viewBar, screenYOffset += TitleBar.HEIGHT);
+        screenYOffset += ViewBar.HEIGHT;
+
         activeScreen = null;
-        setOnKeyPressed((KeyEvent key) -> {
-            if(key.getCode() == KeyCode.ESCAPE)
-                GUI.exit();
-        });
     }
 
     public final TitleBar getTitleBar() {
@@ -87,17 +88,19 @@ public class ScreenController extends Pane {
         }
 
         initScreen(next);
-        getChildren().add(next);
+        addElement(next, screenYOffset);
         next.transitionIn();
         activeScreen = next;
-
     }
 
     private void initScreen(Screen screen) {
-        screen.scaleXProperty().bind(GUI.ZOOM);
-        screen.scaleYProperty().bind(GUI.ZOOM);
-        screen.minWidthProperty().bind(this.widthProperty());
-        screen.minHeightProperty().bind(this.heightProperty());
+        GUI.bindWidth(screen, this.widthProperty());
+        GUI.bindHeight(screen, this.heightProperty().subtract(screenYOffset));
+    }
+
+    private void addElement(Pane pane, double yOffset) {
+        pane.setTranslateY(yOffset);
+        getChildren().add(pane);
     }
 
     /**

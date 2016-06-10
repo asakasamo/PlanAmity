@@ -3,14 +3,14 @@ package gui.screens;
 import data.Entry;
 import data.Project;
 import gui.GUI;
-import gui.controls.*;
+import gui.controls.general.ParticipantKey;
+import gui.controls.general.PlusButton;
+import gui.controls.general.TitleBar;
+import gui.controls.general.ViewBar;
 import gui.controls.overview.*;
-import javafx.event.EventHandler;
 import javafx.scene.Node;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.Pane;
 import javafx.scene.paint.Color;
-import javafx.scene.web.WebHistory;
 
 import java.util.List;
 
@@ -43,17 +43,11 @@ public class Overview extends Screen {
     private PlusButton plusButton;
     private ScreenController screenController;
 
-    private EventHandler<MouseEvent> focusFilter;
-
     public Overview(ScreenController screenController) {
 
         this.getStyleClass().add("overview");
-        this.prefWidthProperty().bind(screenController.widthProperty());
-        this.prefHeightProperty().bind(screenController.heightProperty());
 
-        focusFilter = MouseEvent::consume;
-
-        this.setStyle("-fx-background-color:" + GUI.toRGBCode(Color.LIGHTBLUE));
+//        this.setStyle("-fx-background-color:" + GUI.toRGBCode(Color.SKYBLUE));
         this.screenController = screenController;
 
         populate();
@@ -62,8 +56,6 @@ public class Overview extends Screen {
 
     @Override
     public void populate() {
-        titleBar = screenController.getTitleBar();
-        viewBar = screenController.getViewBar();
         timelineBar = new TimelineBar(this);
         entryBar = new EntryBar(this);
         entryArea = entryBar.getEntryArea();
@@ -74,46 +66,46 @@ public class Overview extends Screen {
         double yOffset = 0;
 
         //add element
-        addElement(titleBar, yOffset);
-        addElement(viewBar, yOffset += titleBar.HEIGHT);
-        addElement(timelineBar, yOffset += viewBar.HEIGHT);
+        addElement(timelineBar, yOffset);
         addElement(entryBar, yOffset += timelineBar.HEIGHT);
         addElement(entryArea, yOffset + EntryBar.HEIGHT);
 
-        plusButton.translateXProperty().bind(this.widthProperty().subtract(plusButton.RADIUS*2).subtract(15));
-        plusButton.translateYProperty().bind(this.heightProperty().subtract(plusButton.RADIUS*2).subtract(15));
+        anchorToBottomRight(plusButton, 30, 30);
+        anchorToBottomLeft(participantKey, 30, 30);
 
         loadActiveProject();
-//        System.out.println(screenController.getActiveProject());
 
         getChildren().add(participantKey);
         getChildren().add(plusButton);
     }
 
+    private void anchorToBottomRight(Pane pane, double xGap, double yGap){
+        pane.translateXProperty().bind(this.widthProperty().subtract(pane.heightProperty()).subtract(xGap));
+        pane.translateYProperty().bind(this.heightProperty().subtract(pane.heightProperty()).subtract(yGap));
+    }
+
+    private void anchorToBottomLeft(Pane pane, double xGap, double yGap) {
+        pane.setTranslateX(xGap);
+        pane.translateYProperty().bind(this.heightProperty().subtract(pane.heightProperty()).subtract(yGap));
+    }
+
+    /**
+     * Loads the currently active project into the Overview. The active project is accessed from the ScreenController
+     * instance passed in from the constructor.
+     */
     private void loadActiveProject() {
-        entryBar.enableStartup();
+        entryBar.beginStartup();
+
         Project project = screenController.getActiveProject();
         List<Entry> entries = project.getEntries();
 
-//        System.out.println(project);
-
+        //load in the top level entries
         for(Entry e : entries){
-            EntryCell cell = depthLoad(EntryCell.generate(e, null, entryBar));
-            entryBar.loadEntry(cell);
-//            System.out.println(cell);
-        }
-        entryBar.finishStartup();
-    }
-
-    private EntryCell depthLoad(final EntryCell parent){
-//        System.out.println(entry.getEntry());
-//        System.out.println("PARENT:" + entry.getParentCell());
-//        System.out.println("ENTRY: " + entry);
-        for(Entry sub : parent.getEntry().getSubEntries()) {
-            depthLoad(EntryCell.generate(sub, parent, entryBar));
+            EntryCell cell = EntryCell.generate(e, null, entryBar); //These are all BubbleEntries, guaranteed.
+            entryBar.loadBubbleEntry((BubbleEntry)cell);
         }
 
-        return parent;
+        entryBar.endStartup();
     }
 
     private void addElement(Pane pane, double yOffset) {
@@ -121,16 +113,20 @@ public class Overview extends Screen {
         getChildren().add(pane);
     }
 
-    public void setButtonFunctions() {
+    private void setButtonFunctions() {
         plusButton.getTopHalf().setOnMouseClicked(MouseEvent -> entryBar.newEntryStart(true));
         plusButton.getBotHalf().setOnMouseClicked(MouseEvent -> entryBar.newEntryStart(false));
     }
 
     public void exclusiveFocus(Node n){
-        this.addEventFilter(MouseEvent.ANY, focusFilter);
+
     }
 
     public void relaxFocus() {
-        this.removeEventFilter(MouseEvent.ANY, focusFilter);
+
+    }
+
+    public ScreenController getScreenController() {
+        return screenController;
     }
 }
