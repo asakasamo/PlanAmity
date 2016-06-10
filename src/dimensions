@@ -1,0 +1,46 @@
+Title Bar: 20px
+
+View/Display Bar: 27px + 1px (separation line)
+
+Top Timeline Height: ~36px
+Side Timeline Width: ~36px
+
+View Frame: [118px + 2px (1px border)] x [26px + 2 px (1px border)] (division lines for cells also 1 px, centered
+straight at the middle of the width and height and centered by the middle of the 1px line, e.g., the top of the line
+centered at the height would be 13.5px down)
+
+Bubbles-
+Starting point: ~24px
+Height: 40px + 2px (1px outer border; 60% opacity)
+Corner Curve Radius: 10px
+Gap between adjacent bubbles: 15px
+Gap between bubble rows: 26px
+Bubble to 1st sub-entry gap: 19px
+
+Branches-
+Starting point: 17px + 1px (width of branch line) into bubble
+Height of branch until 90° turn towards subentry list position: 5px + 2px (1px up behind bubble outline; 1px thickness
+    of branch)
+Width of dashes: 6px
+Space between dash and start of text/subentry border: 3px
+
+Horizontal space between subentry border and text: 1px + 1px (width of border line)
+Vertical space between subentry border and text: 2px + 1px (width of border line)
+
+Length and height of subentry border line: top-most and right-most pixel of text + 1px
+Dotted line spacing: 1px empty, 2px filled; 1px empty, 2px filled; etc...
+Subentry "comfy" spacing: 16.8px (1.86 ̅ x)
+
+Radius of (+) button: 31px + 1px (width of border line)
+Length of "+" (centered in the middle): 28px (2px width of lines)
+
+Fonts/Text-
+Title: Arial, 24px
+Project Duration: Arial, 16px
+Views: Arial, 12px (lined up 2px right, 2px down from inside borders)
+Bubble Entries: Gadugi, Bold, 14px (lined up 15px right from inner border)
+Subentries: Gadugi, Bold, 12px
+
+Branches colored by lastModified
+Text colored by assignedTo
+Bubble colored by assignedTo
