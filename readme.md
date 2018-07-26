@@ -1,4 +1,4 @@
-# PlanAmity (working title)
+# PlanAmity - A project planner in Java
 
 ### What is this?
 
