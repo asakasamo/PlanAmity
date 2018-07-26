@@ -16,7 +16,7 @@ public class TimelineBar extends Pane {
     public TimelineBar(Pane parent) {
         GUI.setHeight(this, HEIGHT);
 
-        label = new Label("(Timeline bar)");
+        label = new Label("");
         this.prefWidthProperty().bind(parent.widthProperty());
 
         this.getStyleClass().add("topTimeline");

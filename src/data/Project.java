@@ -185,7 +185,7 @@ public class Project {
      * @return the sample project
      */
     public static Project randomProject(int numEntries) {
-        Project project = new Project("Sample Project", new DateTime(1,1,2016), new DateTime(1,31,2016));
+        Project project = new Project("Sample Project", new DateTime(7,1,2018), new DateTime(8,31,2018));
         Color[] colors = {
                 Color.BLUE, Color.GREEN, Color.RED, Color.YELLOW, Color.PURPLE, Color.SKYBLUE, Color.PINK, Color.ORANGE
         };
